@@ -8,12 +8,28 @@ import { SigmaContainer } from '@react-sigma/core';
 import "@react-sigma/core/lib/style.css";
 import Sigma from 'sigma';
 import { useWorkerLayoutForceAtlas2 } from "@react-sigma/layout-forceatlas2";
+import { ForceAtlas2LayoutParameters } from 'graphology-layout-forceatlas2';
 
 type NodeType = { x: number; y: number; label: string; size: number };
 type EdgeType = { label: string };
 
 const Fa2Graph = () => {
-  const { start, stop, isRunning } = useWorkerLayoutForceAtlas2();
+  const options: ForceAtlas2LayoutParameters = {
+    settings: {
+      linLogMode: false,
+      outboundAttractionDistribution: false,
+      adjustSizes: false,
+      edgeWeightInfluence: 1,
+      scalingRatio: 0.01,
+      strongGravityMode: true,
+      gravity: 1,
+      barnesHutOptimize: true,
+      barnesHutTheta: 0.9,
+      slowDown: 20,
+    },
+  };
+
+  const { start, stop, isRunning } = useWorkerLayoutForceAtlas2(options);
 
   if (!isRunning) {
     console.log("starting FA2");
