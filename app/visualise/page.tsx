@@ -45,7 +45,7 @@ const Fa2Graph = () => {
 const VisualisePage = () => {
   const [tx, setTx] = useState<Transaction>();
   const client = new EthereumApiClient();
-  let count = useRef(0);
+  const count = useRef(0);
 
   const [sigma, setSigma] = useState<Sigma<NodeType, EdgeType> | null>(null);
 
