@@ -13,6 +13,7 @@
     "@react-sigma/core": "^5.0.2",
     "@react-sigma/layout-forceatlas2": "^5.0.2",
     "alchemy-sdk": "^3.5.1",
+    "events": "^3.3.0",
     "graphology": "^0.25.4",
     "graphology-layout-forceatlas2": "^0.10.1",
     "graphology-types": "^0.24.8",
