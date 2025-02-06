@@ -5,7 +5,7 @@ export interface Transaction {
     blockNumber?: string;
     transactionIndex?: string;
     from: string;
-    to?: string | null;
+    to: string;
     value: string;
     gasPrice: string;
     gas: string;
