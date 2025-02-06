@@ -1,5 +1,6 @@
-import { Transaction } from "../VisualisationTypes";
+import { Transaction } from "../types/transaction";
 import { Alchemy, Network, AlchemySubscription } from "alchemy-sdk"
+import eventEmitter from "./EventEmitter";
 
 const INFURA_URL = process.env.INFURA_URL;
 const INFURA_WS_URL = process.env.INFURA_WS_URL;
@@ -47,6 +48,7 @@ class EthereumApiClient {
             },
             (transaction) => {
               onNewTransactions(this.mapTransaction(transaction));
+              eventEmitter.emit('newPendingTransaction', transaction);
             }
           );
 

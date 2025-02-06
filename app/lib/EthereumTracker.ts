@@ -1,4 +1,4 @@
-import { Transaction } from '../VisualisationTypes';
+import { Transaction } from '../types/transaction';
 
 class EthereumTracker {
     private net_balance: Map<string, number> = new Map();

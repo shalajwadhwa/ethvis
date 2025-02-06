@@ -3,7 +3,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import EthereumApiClient from '../lib/EthereumApiClient';
 import { addTransactionsToGraph } from "@/app/visualise/components/GraphLogic";
-import { Transaction } from "@/app/VisualisationTypes";
+import { Transaction } from "@/app/types/transaction";
 import { SigmaContainer } from '@react-sigma/core';
 import "@react-sigma/core/lib/style.css";
 import Sigma from 'sigma';

@@ -1,5 +1,5 @@
 import Graph from 'graphology';
-import { Transaction } from '@/app/VisualisationTypes';
+import { Transaction } from '@/app/types/transaction';
 
 export function addTransactionsToGraph(graph: Graph, transactions: Transaction[]): Graph {
   let x = graph.order;
