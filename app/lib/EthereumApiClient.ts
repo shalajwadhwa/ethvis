@@ -1,6 +1,7 @@
 import { Transaction } from "../types/transaction";
 import { Alchemy, Network, AlchemySubscription } from "alchemy-sdk"
 import eventEmitter from "./EventEmitter";
+import { EventType } from "../types/event";
 
 const INFURA_URL = process.env.INFURA_URL;
 const INFURA_WS_URL = process.env.INFURA_WS_URL;
@@ -39,7 +40,7 @@ class EthereumApiClient {
         } as Transaction;
     }
 
-    public subscribeToPendingTransactions(onNewTransactions: (transactions: Transaction) => void) {
+    public subscribeToPendingTransactions() {
         console.log('Attempting to subscribe to pending transactions...');
 
         this.alchemy.ws.on(
@@ -47,8 +48,7 @@ class EthereumApiClient {
                 method: AlchemySubscription.PENDING_TRANSACTIONS
             },
             (transaction) => {
-              onNewTransactions(this.mapTransaction(transaction));
-              eventEmitter.emit('newPendingTransaction', transaction);
+              eventEmitter.emit(EventType.NewPendingTransaction, { tx: transaction });
             }
           );
 

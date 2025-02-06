@@ -9,6 +9,8 @@ import "@react-sigma/core/lib/style.css";
 import Sigma from 'sigma';
 import { useWorkerLayoutForceAtlas2 } from "@react-sigma/layout-forceatlas2";
 import { ForceAtlas2LayoutParameters } from 'graphology-layout-forceatlas2';
+import eventEmitter from '../lib/EventEmitter';
+import { EventType, NewPendingTransactionEvent } from '../types/event';
 
 type NodeType = { x: number; y: number; label: string; size: number };
 type EdgeType = { label: string };
@@ -49,14 +51,14 @@ const VisualisePage = () => {
 
   const [sigma, setSigma] = useState<Sigma<NodeType, EdgeType> | null>(null);
 
-  const handleNewBlock = (newTransaction: Transaction) => {
-    console.log('New transaction received', newTransaction);
-    setTx(newTransaction);
-  };
+  const handleNewPendingTransaction = (event: NewPendingTransactionEvent) => {
+    console.log('handling event: ', event.tx.hash);
+    setTx(event.tx);
+  }
 
   if (count.current === 0) {
-    client.subscribeToPendingTransactions(handleNewBlock);
-    console.log("running the container");
+    client.subscribeToPendingTransactions();
+    eventEmitter.on(EventType.NewPendingTransaction, handleNewPendingTransaction)
     count.current++;
   }
 
