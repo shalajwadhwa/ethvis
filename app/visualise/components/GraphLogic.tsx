@@ -18,3 +18,19 @@ export function addTransactionsToGraph(graph: Graph, transactions: Transaction[]
 
   return graph;
 }
+
+export function updateNodeColour(graph: Graph, tx: Transaction, netBalanceTo: number, netBalanceFrom: number): Graph {
+  if (netBalanceTo > 0) {
+    graph.setNodeAttribute(tx.to, 'color', 'green');
+  } else {
+    graph.setNodeAttribute(tx.to, 'color', 'red');
+  }
+
+  if (netBalanceFrom > 0) {
+    graph.setNodeAttribute(tx.from, 'color', 'green');
+  } else {
+    graph.setNodeAttribute(tx.from, 'color', 'red');
+  }
+
+  return graph;
+}
