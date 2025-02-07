@@ -7,9 +7,6 @@ const ALCHEMY_API_KEY = process.env.NEXT_PUBLIC_ALCHEMY_API_KEY;
 
 class EthereumApiClient {
     private alchemy: Alchemy;
-    private static finalizationRegistry = new FinalizationRegistry((heldValue: any) => {
-        heldValue.unsubscribeFromPendingTransactions();
-      });
 
     constructor() {
         const settings = {
@@ -18,9 +15,9 @@ class EthereumApiClient {
           };
 
         this.alchemy = new Alchemy(settings);
-        EthereumApiClient.finalizationRegistry.register(this, {client: this});
     }
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     private mapTransaction(tx: any): Transaction {
         return {
             hash: tx.hash,
