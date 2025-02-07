@@ -1,4 +1,3 @@
-import type { FC } from 'react';
 import { render, screen } from '@testing-library/react';
 import Home from '../page';
 import '@testing-library/jest-dom';
