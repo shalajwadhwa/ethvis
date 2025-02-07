@@ -50,10 +50,6 @@ const VisualisePage = () => {
   const client = useRef(new EthereumApiClient());
   const ethereumTracker = useRef(new EthereumTracker());
 
-  // const handleNewPendingTransaction = (event: NewPendingTransactionEvent) => {
-  //   console.log('handling event: ', event.tx.hash);
-  // }
-
   useEffect(() => {
       if (sigma) {
         client.current.subscribeToPendingTransactions();
