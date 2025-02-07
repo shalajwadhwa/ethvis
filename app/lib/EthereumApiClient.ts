@@ -3,10 +3,6 @@ import { Alchemy, Network, AlchemySubscription } from "alchemy-sdk"
 import eventEmitter from "./EventEmitter";
 import { EventType } from "../types/event";
 
-const INFURA_URL = process.env.INFURA_URL;
-const INFURA_WS_URL = process.env.INFURA_WS_URL;
-
-const ALCHEMY_WS_URL = process.env.ALCHEMY_WS_URL;
 const ALCHEMY_API_KEY = process.env.NEXT_PUBLIC_ALCHEMY_API_KEY;
 
 class EthereumApiClient {
