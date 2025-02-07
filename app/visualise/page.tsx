@@ -10,6 +10,8 @@ import { useWorkerLayoutForceAtlas2 } from "@react-sigma/layout-forceatlas2";
 import { ForceAtlas2LayoutParameters } from 'graphology-layout-forceatlas2';
 import eventEmitter from '../lib/EventEmitter';
 import { EventType } from '../types/event';
+import EthereumTracker from '../lib/EthereumTracker';
+import './style.css';
 
 type NodeType = { x: number; y: number; label: string; size: number };
 type EdgeType = { label: string };
@@ -46,6 +48,7 @@ const Fa2Graph = () => {
 const VisualisePage = () => {
   const [sigma, setSigma] = useState<Sigma<NodeType, EdgeType> | null>(null);
   const client = useRef(new EthereumApiClient());
+  const ethereumTracker = useRef(new EthereumTracker());
 
   // const handleNewPendingTransaction = (event: NewPendingTransactionEvent) => {
   //   console.log('handling event: ', event.tx.hash);
@@ -54,12 +57,14 @@ const VisualisePage = () => {
   useEffect(() => {
       if (sigma) {
         client.current.subscribeToPendingTransactions();
-        eventEmitter.on(EventType.NewPendingTransaction, (tx) => GraphHandler.addTransaction(sigma, tx));
+        eventEmitter.on(EventType.NewPendingTransaction, (tx) => ethereumTracker.current.addPendingTransaction(tx));
+        eventEmitter.on(EventType.AddTransactionToGraph, (tx) => GraphHandler.addTransaction(sigma, tx));
+        eventEmitter.on(EventType.UpdateNodeNetBalance, (tx, netBalance, is_sender) => GraphHandler.updateNodeColour(sigma, tx, netBalance, is_sender));
       }
 }, [sigma]);
 
   return (
-      <div>
+      <div className='dark-mode'>
           <h1>Visualization Page</h1>
           <Link href='/'>Back to home</Link>
             <SigmaContainer ref={setSigma} style={{ width: '100vw', height: '100vh' }}>
