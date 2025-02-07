@@ -1,0 +1,16 @@
+.dark-mode {
+    background-color: #121212;
+    color: #ffffff;
+  }
+  
+  .dark-mode .sigma-container {
+    background-color: #121212;
+  }
+  
+  .dark-mode .sigma-node {
+    fill: #ffffff;
+  }
+  
+  .dark-mode .sigma-edge {
+    stroke: #ffffff;
+  }
