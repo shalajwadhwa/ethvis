@@ -2,15 +2,14 @@
 import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import EthereumApiClient from '../lib/EthereumApiClient';
-import { addTransactionsToGraph } from "@/app/lib/GraphHandler";
-import { Transaction } from "@/app/types/transaction";
+import GraphHandler from "@/app/lib/GraphHandler";
 import { SigmaContainer } from '@react-sigma/core';
 import "@react-sigma/core/lib/style.css";
 import Sigma from 'sigma';
 import { useWorkerLayoutForceAtlas2 } from "@react-sigma/layout-forceatlas2";
 import { ForceAtlas2LayoutParameters } from 'graphology-layout-forceatlas2';
 import eventEmitter from '../lib/EventEmitter';
-import { EventType, NewPendingTransactionEvent } from '../types/event';
+import { EventType } from '../types/event';
 
 type NodeType = { x: number; y: number; label: string; size: number };
 type EdgeType = { label: string };
@@ -45,33 +44,19 @@ const Fa2Graph = () => {
 };
 
 const VisualisePage = () => {
-  const [tx, setTx] = useState<Transaction>();
-  const client = new EthereumApiClient();
-  const count = useRef(0);
-
   const [sigma, setSigma] = useState<Sigma<NodeType, EdgeType> | null>(null);
+  const client = useRef(new EthereumApiClient());
 
-  const handleNewPendingTransaction = (event: NewPendingTransactionEvent) => {
-    console.log('handling event: ', event.tx.hash);
-    setTx(event.tx);
-  }
-
-  if (count.current === 0) {
-    client.subscribeToPendingTransactions();
-    eventEmitter.on(EventType.NewPendingTransaction, handleNewPendingTransaction)
-    count.current++;
-  }
+  // const handleNewPendingTransaction = (event: NewPendingTransactionEvent) => {
+  //   console.log('handling event: ', event.tx.hash);
+  // }
 
   useEffect(() => {
       if (sigma) {
-        const graph = sigma.getGraph();
-        sigma.setSetting('labelRenderedSizeThreshold', 100000);
-        if (tx) {
-          console.log('Graph', graph.order);
-          addTransactionsToGraph(graph, [tx]);
-        }
+        client.current.subscribeToPendingTransactions();
+        eventEmitter.on(EventType.NewPendingTransaction, (tx) => GraphHandler.addTransaction(sigma, tx));
       }
-  }, [sigma, tx]);
+}, [sigma]);
 
   return (
       <div>

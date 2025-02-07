@@ -11,6 +11,9 @@ const ALCHEMY_API_KEY = process.env.ALCHEMY_API_KEY;
 
 class EthereumApiClient {
     private alchemy: Alchemy;
+    private static finalizationRegistry = new FinalizationRegistry((heldValue: any) => {
+        heldValue.unsubscribeFromPendingTransactions();
+      });
 
     constructor() {
         const settings = {
@@ -19,6 +22,7 @@ class EthereumApiClient {
           };
 
         this.alchemy = new Alchemy(settings);
+        EthereumApiClient.finalizationRegistry.register(this, {client: this});
     }
 
     private mapTransaction(tx: any): Transaction {
@@ -48,7 +52,7 @@ class EthereumApiClient {
                 method: AlchemySubscription.PENDING_TRANSACTIONS
             },
             (transaction) => {
-              eventEmitter.emit(EventType.NewPendingTransaction, { tx: transaction });
+              eventEmitter.emit(EventType.NewPendingTransaction, transaction);
             }
           );
 

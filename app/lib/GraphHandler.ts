@@ -1,23 +1,6 @@
 import Graph from 'graphology';
 import { Transaction } from '@/app/types/transaction';
-
-export function addTransactionsToGraph(graph: Graph, transactions: Transaction[]): Graph {
-  let x = graph.order;
-  for (const t of transactions) {
-    if (!graph.hasNode(t.from)) {
-      graph.addNode(t.from, { label: x, x: Math.random(), y: Math.random() });
-    }
-    if (!graph.hasNode(t.to)) {
-      graph.addNode(t.to, { label: x+1, x: Math.random(), y: Math.random() });
-    }
-    if (!graph.hasEdge(t.from, t.to)) {
-      graph.addEdge(t.from, t.to);
-    }
-    x += 2
-  }
-
-  return graph;
-}
+import Sigma from 'sigma';
 
 export function updateNodeColour(graph: Graph, tx: Transaction, netBalanceTo: number, netBalanceFrom: number): Graph {
   if (netBalanceTo > 0) {
@@ -34,3 +17,29 @@ export function updateNodeColour(graph: Graph, tx: Transaction, netBalanceTo: nu
 
   return graph;
 }
+
+type NodeType = { x: number; y: number; label: string; size: number };
+type EdgeType = { label: string };
+
+class GraphHandler {
+  public static addTransaction(sigma: Sigma<NodeType, EdgeType>, tx: Transaction): void {
+    const graph: Graph = sigma.getGraph();
+    if (!graph) {
+      return;
+    }
+
+    const x = graph.order;
+
+    if (!graph.hasNode(tx.from)) {
+      graph.addNode(tx.from, { label: x, x: Math.random(), y: Math.random() });
+    }
+    if (!graph.hasNode(tx.to)) {
+      graph.addNode(tx.to, { label: x+1, x: Math.random(), y: Math.random() });
+    }
+    if (!graph.hasEdge(tx.from, tx.to)) {
+      graph.addEdge(tx.from, tx.to);
+    }
+  }
+}
+
+export default GraphHandler
