@@ -1,9 +1,11 @@
+import eventEmitter from './EventEmitter';
 import { Transaction } from '../types/transaction';
+import { EventType } from '../types/event';
 
 class EthereumTracker {
     private net_balance: Map<string, number> = new Map();
     private mempool: Transaction[] = [];
-    private max_mempool_size: number = 100;
+    private max_mempool_size: number = 2000;
 
     public shiftMempool() {
         const to_remove: Transaction | undefined = this.mempool.shift();
@@ -14,6 +16,7 @@ class EthereumTracker {
 
     public appendMempool(tx: Transaction) {
         this.mempool.push(tx);
+        eventEmitter.emit(EventType.AddTransactionToGraph, tx);
         this.updateNetBalanceFromTransaction(tx);
     }
 
@@ -25,16 +28,19 @@ class EthereumTracker {
         this.appendMempool(tx);
     }
 
-    public updateNetBalance(address: string, value: number) {
-        const prev_balance = this.net_balance.get(address) || 0;
-        this.net_balance.set(address, prev_balance + value);
+    public updateNetBalance(tx: Transaction, value: number, is_sender: boolean) {
+        const node = is_sender ? tx.from : tx.to;
+
+        const prev_balance = this.net_balance.get(node) || 0;
+        this.net_balance.set(node, prev_balance + value);
+        eventEmitter.emit(EventType.UpdateNodeNetBalance, tx, value, is_sender);
     }
 
     public updateNetBalanceFromTransaction(tx: Transaction, is_removed: boolean = false) {
         const reverse_tx_multiplier = is_removed ? -1 : 1;
 
-        this.updateNetBalance(tx.from, -Number(tx.value) * reverse_tx_multiplier);
-        this.updateNetBalance(tx.to, Number(tx.value) * reverse_tx_multiplier);
+        this.updateNetBalance(tx, -Number(tx.value) * reverse_tx_multiplier, true);
+        this.updateNetBalance(tx, Number(tx.value) * reverse_tx_multiplier, false);
     }
 }
 
