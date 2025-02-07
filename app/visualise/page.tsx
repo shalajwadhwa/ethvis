@@ -53,6 +53,7 @@ const VisualisePage = () => {
   useEffect(() => {
       if (sigma) {
         client.current.subscribeToPendingTransactions();
+        sigma.setSetting('labelRenderedSizeThreshold', 100000);
         eventEmitter.on(EventType.NewPendingTransaction, (tx) => ethereumTracker.current.addPendingTransaction(tx));
         eventEmitter.on(EventType.AddTransactionToGraph, (tx) => GraphHandler.addTransaction(sigma, tx));
         eventEmitter.on(EventType.UpdateNodeNetBalance, (tx, netBalance, is_sender) => GraphHandler.updateNodeColour(sigma, tx, netBalance, is_sender));
