@@ -7,7 +7,7 @@ const INFURA_URL = process.env.INFURA_URL;
 const INFURA_WS_URL = process.env.INFURA_WS_URL;
 
 const ALCHEMY_WS_URL = process.env.ALCHEMY_WS_URL;
-const ALCHEMY_API_KEY = process.env.ALCHEMY_API_KEY;
+const ALCHEMY_API_KEY = process.env.NEXT_PUBLIC_ALCHEMY_API_KEY;
 
 class EthereumApiClient {
     private alchemy: Alchemy;
@@ -52,7 +52,7 @@ class EthereumApiClient {
                 method: AlchemySubscription.PENDING_TRANSACTIONS
             },
             (transaction) => {
-              eventEmitter.emit(EventType.NewPendingTransaction, transaction);
+              eventEmitter.emit(EventType.NewPendingTransaction, this.mapTransaction(transaction));
             }
           );
 
