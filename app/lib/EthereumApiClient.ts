@@ -6,6 +6,7 @@ import { EventType } from "../types/event";
 const ALCHEMY_API_KEY = process.env.NEXT_PUBLIC_ALCHEMY_API_KEY;
 
 class EthereumApiClient {
+    private static instance: EthereumApiClient;
     private alchemy: Alchemy;
 
     constructor() {
@@ -15,6 +16,14 @@ class EthereumApiClient {
           };
 
         this.alchemy = new Alchemy(settings);
+    }
+
+    public static getInstance(): EthereumApiClient {
+        if (!EthereumApiClient.instance) {
+            EthereumApiClient.instance = new EthereumApiClient();
+        }
+
+        return EthereumApiClient.instance;
     }
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any

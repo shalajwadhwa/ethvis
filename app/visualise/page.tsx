@@ -47,7 +47,7 @@ const Fa2Graph = () => {
 
 const VisualisePage = () => {
   const [sigma, setSigma] = useState<Sigma<NodeType, EdgeType> | null>(null);
-  const client = useRef(new EthereumApiClient());
+  const client = useRef(EthereumApiClient.getInstance());
   const ethereumTracker = useRef(new EthereumTracker());
 
   useEffect(() => {
