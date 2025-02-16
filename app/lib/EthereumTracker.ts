@@ -3,9 +3,18 @@ import { Transaction } from '../types/transaction';
 import { EventType } from '../types/event';
 
 class EthereumTracker {
+    private static instance: EthereumTracker;
     private net_balance: Map<string, number> = new Map();
     private mempool: Transaction[] = [];
     private max_mempool_size: number = 2000;
+
+    public static getInstance(): EthereumTracker {
+        if (!EthereumTracker.instance) {
+            EthereumTracker.instance = new EthereumTracker();
+        }
+
+        return EthereumTracker.instance;
+    }
 
     public shiftMempool() {
         const to_remove: Transaction | undefined = this.mempool.shift();
