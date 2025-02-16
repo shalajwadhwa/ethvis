@@ -1,48 +1,68 @@
 import Graph from 'graphology';
 import { Transaction } from '@/app/types/transaction';
 import Sigma from 'sigma';
+import EthereumApiClient from './EthereumApiClient';
 
 type NodeType = { x: number; y: number; label: string; size: number };
 type EdgeType = { label: string };
 
 class GraphHandler {
-  public static addTransaction(sigma: Sigma<NodeType, EdgeType>, tx: Transaction): void {
+  public static addNode(sigma: Sigma<NodeType, EdgeType>, node: string): void {
     const graph: Graph = sigma.getGraph();
     if (!graph) {
       return;
     }
-    console.log("Size: ", graph.order);
 
-    const x = graph.order;
+    if (!graph.hasNode(node)) {
+      graph.addNode(node, { label: node, x: Math.random(), y: Math.random(), size : 4 });
+    }
+  }
 
-    if (!graph.hasNode(tx.from)) {
-      graph.addNode(tx.from, { label: x, x: Math.random(), y: Math.random(), size: 4 });
+  public static addEdge(sigma: Sigma<NodeType, EdgeType>, from: string, to: string): void {
+    const graph: Graph = sigma.getGraph();
+    if (!graph) {
+      return;
     }
-    if (!graph.hasNode(tx.to)) {
-      graph.addNode(tx.to, { label: x+1, x: Math.random(), y: Math.random(), size: 4 });
+
+    if (!graph.hasEdge(from, to)) {
+      graph.addEdge(from, to);
     }
-    if (!graph.hasEdge(tx.from, tx.to)) {
-      graph.addEdge(tx.from, tx.to);
+  }
+
+  public static addTransaction(sigma: Sigma<NodeType, EdgeType>, tx: Transaction): void {
+    this.addNode(sigma, tx.from);
+    this.addNode(sigma, tx.to);
+    this.addEdge(sigma, tx.from, tx.to);
+  }
+
+  public static setNodeColour(sigma: Sigma<NodeType, EdgeType>, node: string, colour: string): void {
+    const graph: Graph = sigma.getGraph();
+    if (!graph) {
+      return;
+    }
+
+    if (graph.hasNode(node)) {
+      graph.setNodeAttribute(node, 'color', colour);
     }
   }
 
   public static updateNodeColour(sigma: Sigma<NodeType, EdgeType>, tx: Transaction, netBalance: number, is_sender: boolean): void {
-    const graph: Graph = sigma.getGraph();
-    if (!graph) {
-      return;
-    }
-
     const node = is_sender ? tx.from : tx.to;
 
-    if (!graph.hasNode(node)) {
-      return;
+    if (!is_sender) {
+      EthereumApiClient.getInstance().isCode(node).then((code) => {
+        if (code !== '0x') {
+          this.setNodeColour(sigma, node, 'blue');
+          return;
+        }
+      });
     }
 
     if (netBalance > 0) {
-      graph.setNodeAttribute(node, 'color', 'green');
+      this.setNodeColour(sigma, node, 'green');
     } 
     else if (netBalance < 0) {
-      graph.setNodeAttribute(node, 'color', 'red');
+      this.setNodeColour(sigma, node, 'red');
     }
     else {
       return;
