@@ -65,6 +65,10 @@ class EthereumApiClient {
         this.alchemy.ws.off({});
         console.log('Unsubscribed from pending transactions');
     }
+
+    public isCode(address: string): Promise<string> {
+        return this.alchemy.core.getCode(address);
+    }
 }
 
 export default EthereumApiClient;
