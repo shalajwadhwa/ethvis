@@ -4,6 +4,7 @@ import eventEmitter from "./EventEmitter";
 import { EventType } from "../types/event";
 
 const ALCHEMY_API_KEY = process.env.NEXT_PUBLIC_ALCHEMY_API_KEY;
+const ETH_LABELS_URL = 'http://localhost:3001/labels/'
 
 class EthereumApiClient {
     private static instance: EthereumApiClient;
@@ -68,6 +69,17 @@ class EthereumApiClient {
 
     public isCode(address: string): Promise<string> {
         return this.alchemy.core.getCode(address);
+    }
+
+    public getInfo(address: string): Promise<string> {
+        console.log('Fetching address info for', address);
+        return fetch(`${ETH_LABELS_URL}${address}`)
+            .then(
+                response => response.json()
+            )
+            .catch(
+                error => console.log("Error fetching address info", error)
+            );
     }
 }
 
