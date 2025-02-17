@@ -1,4 +1,4 @@
-import { Transaction } from "../types/transaction";
+import { mapTransaction } from "../types/transaction";
 import { Alchemy, Network, AlchemySubscription } from "alchemy-sdk"
 import eventEmitter from "./EventEmitter";
 import { EventType } from "../types/event";
@@ -27,26 +27,6 @@ class EthereumApiClient {
         return EthereumApiClient.instance;
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    private mapTransaction(tx: any): Transaction {
-        return {
-            hash: tx.hash,
-            from: tx.from,
-            to: tx.to,
-            value: tx.value,
-            gas: tx.gas,
-            gasPrice: tx.gasPrice,
-            input: tx.input,
-            nonce: tx.nonce,
-            blockHash: tx.blockHash,
-            blockNumber: tx.blockNumber,
-            transactionIndex: tx.transactionIndex,
-            v: tx.v,
-            r: tx.r,
-            s: tx.s
-        } as Transaction;
-    }
-
     public subscribeToPendingTransactions() {
         console.log('Attempting to subscribe to pending transactions...');
 
@@ -55,7 +35,7 @@ class EthereumApiClient {
                 method: AlchemySubscription.PENDING_TRANSACTIONS
             },
             (transaction) => {
-              eventEmitter.emit(EventType.NewPendingTransaction, this.mapTransaction(transaction));
+              eventEmitter.emit(EventType.NewPendingTransaction, mapTransaction(transaction));
             }
           );
 
