@@ -2,6 +2,7 @@ import { mapTransaction } from "../types/transaction";
 import { Alchemy, Network, AlchemySubscription } from "alchemy-sdk"
 import eventEmitter from "./EventEmitter";
 import { EventType } from "../types/event";
+import { AddressInfoResponse } from "../types/graph";
 
 const ALCHEMY_API_KEY = process.env.NEXT_PUBLIC_ALCHEMY_API_KEY;
 const ETH_LABELS_URL = 'http://localhost:3001/labels/'
@@ -51,7 +52,7 @@ class EthereumApiClient {
         return this.alchemy.core.getCode(address);
     }
 
-    public getInfo(address: string): Promise<string> {
+    public getInfo(address: string): Promise<AddressInfoResponse> {
         console.log('Fetching address info for', address);
         return fetch(`${ETH_LABELS_URL}${address}`)
             .then(
