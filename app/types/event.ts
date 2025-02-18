@@ -1,4 +1,4 @@
-import { Transaction } from './transaction';
+import { Transaction } from '@/app/types/transaction';
 
 export interface NewPendingTransactionEvent {
     type: EventType.NewPendingTransaction;
