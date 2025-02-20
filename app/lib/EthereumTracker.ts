@@ -1,6 +1,8 @@
-import eventEmitter from './EventEmitter';
-import { Transaction } from '../types/transaction';
-import { EventType } from '../types/event';
+import eventEmitter from '@/app/lib/EventEmitter';
+import { Transaction } from '@/app/types/transaction';
+import { EventType } from '@/app/types/event';
+import EthereumApiClient from "@/app/lib/EthereumApiClient";
+import { AddressInfoResponse } from '@/app/types/graph';
 
 class EthereumTracker {
     private static instance: EthereumTracker;
@@ -29,9 +31,53 @@ class EthereumTracker {
         this.updateNetBalanceFromTransaction(tx);
     }
 
-    public addPendingTransaction(tx: Transaction) {
+    public createAttributesFromResponse(response: AddressInfoResponse) {
+        const address = response[0].address;
+        const labels = new Set();
+        const names = new Set();
+        const websites = new Set();
+        const nameTags = new Set();
+        const symbols = new Set();
+        for (const entry of response) {
+            if (entry.label) {
+                labels.add(entry.label);
+            }
+            if (entry.name) {
+                names.add(entry.name);
+            }
+            if (entry.website) {
+                websites.add(entry.website);
+            }
+            if (entry.nameTag) {
+                nameTags.add(entry.nameTag);
+            }
+            if (entry.symbol) {
+                symbols.add(entry.symbol);
+            }
+        }
+
+        return { address, labels, names, websites, nameTags, symbols };
+    }
+
+    public async addNewAddress(address: string) {
+        const response: AddressInfoResponse = await EthereumApiClient.getInstance().getInfo(address);
+
+        const attributes = this.createAttributesFromResponse(response);
+
+        console.log("Adding address to graph with attributes", attributes);
+        eventEmitter.emit(EventType.AddAddressToGraph, address, attributes);
+    }
+
+    public async addPendingTransaction(tx: Transaction) {
         if (this.mempool.length >= this.max_mempool_size) {
             this.shiftMempool();
+        }
+
+        if (!this.net_balance.has(tx.from)) {
+            await this.addNewAddress(tx.from);
+        }
+        if (!this.net_balance.has(tx.to)) {
+            await this.addNewAddress(tx.to);
         }
 
         this.appendMempool(tx);
