@@ -1,20 +1,20 @@
 import Graph from 'graphology';
 import { Transaction } from '@/app/types/transaction';
 import Sigma from 'sigma';
-import EthereumApiClient from './EthereumApiClient';
+import EthereumApiClient from '@/app/lib/EthereumApiClient';
 
 type NodeType = { x: number; y: number; label: string; size: number };
 type EdgeType = { label: string };
 
 class GraphHandler {
-  public static addNode(sigma: Sigma<NodeType, EdgeType>, node: string): void {
+  public static addNode(sigma: Sigma<NodeType, EdgeType>, node: string, attributes: any): void {
     const graph: Graph = sigma.getGraph();
     if (!graph) {
       return;
     }
 
     if (!graph.hasNode(node)) {
-      graph.addNode(node, { label: node, x: Math.random(), y: Math.random(), size : 4 });
+      graph.addNode(node, { label: node, x: Math.random(), y: Math.random(), size : 4, data: { ...attributes} });
     }
   }
 
@@ -30,8 +30,6 @@ class GraphHandler {
   }
 
   public static addTransaction(sigma: Sigma<NodeType, EdgeType>, tx: Transaction): void {
-    this.addNode(sigma, tx.from);
-    this.addNode(sigma, tx.to);
     this.addEdge(sigma, tx.from, tx.to);
   }
 
