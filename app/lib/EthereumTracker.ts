@@ -62,7 +62,11 @@ class EthereumTracker {
     public async addNewAddress(address: string) {
         const response: AddressInfoResponse = await EthereumApiClient.getInstance().getInfo(address);
 
-        const attributes = this.createAttributesFromResponse(response);
+        let attributes = {};
+        if (response.length > 0) {
+            attributes = this.createAttributesFromResponse(response);
+        }
+        
 
         console.log("Adding address to graph with attributes", attributes);
         eventEmitter.emit(EventType.AddAddressToGraph, address, attributes);
