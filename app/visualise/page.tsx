@@ -12,6 +12,7 @@ import "@/app/visualise/style.css";
 import { NodeType, EdgeType } from "@/app/types/graph";
 import NodeAttributes from "@/app/visualise/components/NodeAttributes";
 import Fa2Graph from "@/app/visualise/components/Fa2Graph";
+import SidePanel from "@/app/visualise/components/SidePanel";
 
 const VisualisePage = () => {
   const [sigma, setSigma] = useState<Sigma<NodeType, EdgeType> | null>(null);
@@ -49,6 +50,7 @@ const VisualisePage = () => {
         <Fa2Graph setHoveredNode={setHoveredNode} />
       </SigmaContainer>
       <NodeAttributes hoveredNode={hoveredNode} sigma={sigma} />
+      <SidePanel></SidePanel>
     </div>
   );
 };
