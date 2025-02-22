@@ -1,10 +1,13 @@
 import Graph from 'graphology';
 import { Transaction } from '@/app/types/transaction';
 import Sigma from 'sigma';
-import EthereumApiClient from '@/app/lib/EthereumApiClient';
 
 type NodeType = { x: number; y: number; label: string; size: number };
 type EdgeType = { label: string };
+
+const DEFAULT_COLOUR = 'grey';
+const CONTRACT_COLOUR = 'blue';
+
 
 class GraphHandler {
   public static addNode(sigma: Sigma<NodeType, EdgeType>, node: string, attributes: any): void {
@@ -13,8 +16,9 @@ class GraphHandler {
       return;
     }
 
+    const colour = attributes.isContract ? CONTRACT_COLOUR : DEFAULT_COLOUR;
     if (!graph.hasNode(node)) {
-      graph.addNode(node, { label: node, x: Math.random(), y: Math.random(), size : 4, data: { ...attributes} });
+      graph.addNode(node, { label: node, x: Math.random(), y: Math.random(), size : 4, color: colour, data: { ...attributes} });
     }
   }
 
@@ -46,14 +50,9 @@ class GraphHandler {
 
   public static updateNodeColour(sigma: Sigma<NodeType, EdgeType>, tx: Transaction, netBalance: number, is_sender: boolean): void {
     const node = is_sender ? tx.from : tx.to;
-
-    if (!is_sender) {
-      EthereumApiClient.getInstance().isCode(node).then((code) => {
-        if (code !== '0x') {
-          this.setNodeColour(sigma, node, 'blue');
-          return;
-        }
-      });
+    const isContract = sigma.getGraph().getNodeAttribute(node, 'isContract');
+    if (isContract) {
+      return;
     }
 
     if (netBalance > 0) {

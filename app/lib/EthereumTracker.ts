@@ -59,15 +59,21 @@ class EthereumTracker {
         return { address, labels, names, websites, nameTags, symbols };
     }
 
-    public async addNewAddress(address: string) {
-        const response: AddressInfoResponse = await EthereumApiClient.getInstance().getInfo(address);
+    public async addNewAddress(address: string, isTo=false) {
+        const nodeAttributes: AddressInfoResponse = await EthereumApiClient.getInstance().getInfo(address);
 
         let attributes = {};
-        if (response.length > 0) {
-            attributes = this.createAttributesFromResponse(response);
+        if (nodeAttributes.length > 0) {
+            attributes = this.createAttributesFromResponse(nodeAttributes);
+        }
+
+        if (isTo) {
+            const isContract = await EthereumApiClient.getInstance().isCode(address);
+            if (isContract !== '0x') {
+                attributes = { ...attributes, isContract: true };
+            }
         }
         
-
         console.log("Adding address to graph with attributes", attributes);
         eventEmitter.emit(EventType.AddAddressToGraph, address, attributes);
     }
@@ -81,7 +87,7 @@ class EthereumTracker {
             await this.addNewAddress(tx.from);
         }
         if (!this.net_balance.has(tx.to)) {
-            await this.addNewAddress(tx.to);
+            await this.addNewAddress(tx.to, true);
         }
 
         this.appendMempool(tx);
