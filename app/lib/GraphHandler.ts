@@ -1,9 +1,7 @@
 import Graph from 'graphology';
 import { Transaction } from '@/app/types/transaction';
 import Sigma from 'sigma';
-
-type NodeType = { x: number; y: number; label: string; size: number };
-type EdgeType = { label: string };
+import { NodeType, EdgeType } from '@/app/types/graph';
 
 const DEFAULT_COLOUR = 'grey';
 const CONTRACT_COLOUR = 'blue';
@@ -18,7 +16,7 @@ class GraphHandler {
 
     const colour = attributes.isContract ? CONTRACT_COLOUR : DEFAULT_COLOUR;
     if (!graph.hasNode(node)) {
-      graph.addNode(node, { label: node, x: Math.random(), y: Math.random(), size : 4, color: colour, data: { ...attributes} });
+      graph.addNode(node, { label: node, x: Math.random(), y: Math.random(), size: 4, color: colour, data: { ...attributes } });
     }
   }
 
@@ -57,7 +55,7 @@ class GraphHandler {
 
     if (netBalance > 0) {
       this.setNodeColour(sigma, node, 'green');
-    } 
+    }
     else if (netBalance < 0) {
       this.setNodeColour(sigma, node, 'red');
     }
