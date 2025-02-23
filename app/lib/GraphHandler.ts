@@ -2,9 +2,19 @@ import Graph from 'graphology';
 import { Transaction } from '@/app/types/transaction';
 import Sigma from 'sigma';
 import { NodeType, EdgeType } from '@/app/types/graph';
+import Values from 'values.js';
 
 const DEFAULT_COLOUR = 'grey';
 const CONTRACT_COLOUR = 'blue';
+const NEGATIVE_COLOUR = 'red';
+const POSITIVE_COLOUR = 'green';
+
+const NUM_COLOUR_BINS = 40;
+const MAX_TRANSACTION_VALUE = 4 * 1e18;
+const BIN_INTERVAL = MAX_TRANSACTION_VALUE / NUM_COLOUR_BINS;
+
+const negativeScale = new Values(NEGATIVE_COLOUR).shades(NUM_COLOUR_BINS);
+const positiveScale = new Values(POSITIVE_COLOUR).shades(NUM_COLOUR_BINS);
 
 
 class GraphHandler {
@@ -54,10 +64,20 @@ class GraphHandler {
     }
 
     if (netBalance > 0) {
-      this.setNodeColour(sigma, node, 'green');
+      let interval = Math.floor(netBalance / BIN_INTERVAL);
+      if (interval >= NUM_COLOUR_BINS) {
+        interval = NUM_COLOUR_BINS - 1;
+      }
+      const colour = positiveScale[interval].hexString();
+      this.setNodeColour(sigma, node, colour);
     }
     else if (netBalance < 0) {
-      this.setNodeColour(sigma, node, 'red');
+      let interval = Math.floor(-netBalance / BIN_INTERVAL);
+      if (interval >= NUM_COLOUR_BINS) {
+        interval = NUM_COLOUR_BINS - 1;
+      }
+      const colour = negativeScale[interval].hexString();
+      this.setNodeColour(sigma, node, colour);
     }
     else {
       return;
