@@ -8,6 +8,7 @@ export type AddressInfo = {
   nameTag?: string;
   offset?: string;
   limit?: string;
+  isContract?: boolean;
 };
 
 export type AddressInfoResponse = AddressInfo[];
@@ -17,7 +18,7 @@ export type NodeType = {
   y: number;
   label: string;
   size: number;
-  data: { any };
+  isContract: boolean;
 };
 
 export type EdgeType = { label: string };

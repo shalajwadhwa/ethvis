@@ -27,8 +27,8 @@ const VisualisePage = () => {
       eventEmitter.on(EventType.NewPendingTransaction, (tx) =>
         ethereumTracker.current.addPendingTransaction(tx)
       );
-      eventEmitter.on(EventType.AddAddressToGraph, (address, attributes) =>
-        GraphHandler.addNode(sigma, address, attributes)
+      eventEmitter.on(EventType.AddAddressToGraph, (address, isContract) =>
+        GraphHandler.addNode(sigma, address, isContract)
       );
       eventEmitter.on(EventType.AddTransactionToGraph, (tx) =>
         GraphHandler.addTransaction(sigma, tx)
@@ -49,7 +49,7 @@ const VisualisePage = () => {
       >
         <Fa2Graph setHoveredNode={setHoveredNode} />
       </SigmaContainer>
-      <NodeAttributes hoveredNode={hoveredNode} sigma={sigma} />
+      <NodeAttributes hoveredNode={hoveredNode} ethereumTracker={ethereumTracker.current}/>
       <SidePanel></SidePanel>
     </div>
   );

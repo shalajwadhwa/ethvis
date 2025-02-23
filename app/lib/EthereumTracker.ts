@@ -2,7 +2,7 @@ import eventEmitter from '@/app/lib/EventEmitter';
 import { Transaction } from '@/app/types/transaction';
 import { EventType } from '@/app/types/event';
 import EthereumApiClient from "@/app/lib/EthereumApiClient";
-import { AddressInfoResponse } from '@/app/types/graph';
+import { AddressInfo, AddressInfoResponse } from '@/app/types/graph';
 
 const MAX_MEMPOOL_SIZE = 2000;
 
@@ -10,6 +10,7 @@ class EthereumTracker {
     private static instance: EthereumTracker;
     private netBalance: Map<string, number> = new Map();
     private mempool: Transaction[] = [];
+    private nodeAttributes: Map<string, AddressInfo> = new Map();
 
     public static getInstance(): EthereumTracker {
         if (!EthereumTracker.instance) {
@@ -32,7 +33,10 @@ class EthereumTracker {
         this.updateNetBalanceFromTransaction(tx);
     }
 
-    public createAttributesFromResponse(response: AddressInfoResponse) {
+    public createAttributesFromResponse(response: AddressInfoResponse, isContract: boolean) {
+        if (response.length === 0) {
+            return { isContract: isContract };
+        }
         const address = response[0].address;
         const labels = new Set();
         const names = new Set();
@@ -57,26 +61,33 @@ class EthereumTracker {
             }
         }
 
-        return { address, labels, names, websites, nameTags, symbols };
+        return { address, labels, names, websites, nameTags, symbols, isContract: isContract };
+    }
+
+    public async setNodeAttributes(address: string, isTo=false) {
+        const nodeAttributes: AddressInfoResponse = await EthereumApiClient.getInstance().getInfo(address);
+
+        let isContract = false;
+        if (isTo) {
+            const contract = await EthereumApiClient.getInstance().isCode(address);
+            if (contract !== '0x') {
+                isContract = true; 
+            }
+        }
+
+        const attributes = this.createAttributesFromResponse(nodeAttributes, isContract);
+        this.nodeAttributes.set(address, attributes);
+    }
+
+    public getNodeAttributes(address: string) {
+        return this.nodeAttributes.get(address);
     }
 
     public async addNewAddress(address: string, isTo=false) {
-        const nodeAttributes: AddressInfoResponse = await EthereumApiClient.getInstance().getInfo(address);
+        await this.setNodeAttributes(address, isTo);
+        const isContract = this.getNodeAttributes(address)?.isContract || false;
 
-        let attributes = {};
-        if (nodeAttributes.length > 0) {
-            attributes = this.createAttributesFromResponse(nodeAttributes);
-        }
-
-        if (isTo) {
-            const isContract = await EthereumApiClient.getInstance().isCode(address);
-            if (isContract !== '0x') {
-                attributes = { ...attributes, isContract: true };
-            }
-        }
-        
-        console.log("Adding address to graph with attributes", attributes);
-        eventEmitter.emit(EventType.AddAddressToGraph, address, attributes);
+        eventEmitter.emit(EventType.AddAddressToGraph, address, isContract);
     }
 
     public async addPendingTransaction(tx: Transaction) {

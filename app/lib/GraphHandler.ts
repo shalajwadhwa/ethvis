@@ -8,15 +8,15 @@ const CONTRACT_COLOUR = 'blue';
 
 
 class GraphHandler {
-  public static addNode(sigma: Sigma<NodeType, EdgeType>, node: string, attributes: any): void {
+  public static addNode(sigma: Sigma<NodeType, EdgeType>, node: string, isContract: boolean): void {
     const graph: Graph = sigma.getGraph();
     if (!graph) {
       return;
     }
 
-    const colour = attributes.isContract ? CONTRACT_COLOUR : DEFAULT_COLOUR;
+    const colour = isContract ? CONTRACT_COLOUR : DEFAULT_COLOUR;
     if (!graph.hasNode(node)) {
-      graph.addNode(node, { label: node, x: Math.random(), y: Math.random(), size: 4, color: colour, data: { ...attributes } });
+      graph.addNode(node, { label: node, x: Math.random(), y: Math.random(), size: 4, color: colour, isContract: isContract });
     }
   }
 

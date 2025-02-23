@@ -1,20 +1,18 @@
 import React from "react";
-import { Sigma } from "sigma";
-import { NodeType, EdgeType } from "@/app/types/graph";
+import EthereumTracker from "@/app/lib/EthereumTracker";
 
 const NodeAttributes = ({
   hoveredNode,
-  sigma,
+  ethereumTracker,
 }: {
   hoveredNode: string | null;
-  sigma: Sigma<NodeType, EdgeType> | null;
+  ethereumTracker: EthereumTracker;
 }) => {
-  if (!hoveredNode || !sigma) {
+  if (!hoveredNode) {
     return null;
   }
 
-  const graph = sigma.getGraph();
-  const customData = graph.getNodeAttribute(hoveredNode, "data");
+  const attributes = ethereumTracker.getNodeAttributes(hoveredNode);
 
   return (
     <div
@@ -28,9 +26,9 @@ const NodeAttributes = ({
         borderRadius: "5px",
       }}
     >
-      {customData && (
+      {attributes && (
         <ul>
-          {Object.entries(customData).map(([key, value]) => (
+          {Object.entries(attributes).map(([key, value]) => (
             <li key={key}>
               {key}: {value}
             </li>
