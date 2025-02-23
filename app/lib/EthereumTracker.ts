@@ -83,6 +83,10 @@ class EthereumTracker {
         return this.nodeAttributes.get(address);
     }
 
+    public getAllNodeAttributes() {
+        return this.nodeAttributes;
+    }
+
     public async addNewAddress(address: string, isTo=false) {
         await this.setNodeAttributes(address, isTo);
         const isContract = this.getNodeAttributes(address)?.isContract || false;
