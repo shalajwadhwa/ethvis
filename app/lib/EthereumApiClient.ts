@@ -1,4 +1,4 @@
-import { mapTransaction } from "../types/transaction";
+import { Transaction } from "../types/transaction";
 import { Alchemy, Network, AlchemySubscription } from "alchemy-sdk"
 import eventEmitter from "./EventEmitter";
 import { EventType } from "../types/event";
@@ -36,7 +36,7 @@ class EthereumApiClient {
                 method: AlchemySubscription.PENDING_TRANSACTIONS
             },
             (transaction) => {
-              eventEmitter.emit(EventType.NewPendingTransaction, mapTransaction(transaction));
+              eventEmitter.emit(EventType.NewPendingTransaction, transaction as Transaction);
             }
           );
 
