@@ -9,6 +9,7 @@ export type AddressInfo = {
   offset?: string;
   limit?: string;
   isContract?: boolean;
+  netBalance?: number;
 };
 
 export type AddressInfoResponse = AddressInfo[];
