@@ -29,8 +29,6 @@ const SidePanel = ({
         top: "10px",
         right: "10px",
         padding: "8px",
-        background: "rgba(0,0,0,0.7)",
-        color: "white",
         borderRadius: "5px",
         maxHeight: "50vh",
         maxWidth: "20vw",
@@ -39,7 +37,7 @@ const SidePanel = ({
     >
       <ul>
         {[...nodeAttributes].map(([key, value]) => (
-          <li key={key}>
+          <li key={key} style={{ padding: "5px" }}>
             <PanelItem addressInfo={value as AddressInfo} />
           </li>
         ))}
