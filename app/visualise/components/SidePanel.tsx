@@ -10,11 +10,11 @@ const SidePanel = ({
 }: {
   ethereumTracker: EthereumTracker;
 }) => {
-  const [nodeAttributes, setNodeAttributes] = useState(ethereumTracker.getAllNodeAttributes());
+  const [nodeAttributes, setNodeAttributes] = useState(ethereumTracker.getNodes());
 
   useEffect(() => {
     const updateAttributes = () => {
-      setNodeAttributes(ethereumTracker.getAllNodeAttributes());
+      setNodeAttributes(ethereumTracker.getNodes());
     };
 
     eventEmitter.on(EventType.AddTransactionToGraph, updateAttributes);

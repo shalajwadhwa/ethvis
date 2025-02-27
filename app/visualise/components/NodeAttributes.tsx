@@ -12,7 +12,8 @@ const NodeAttributes = ({
     return null;
   }
 
-  const attributes = ethereumTracker.getNodeAttributes(hoveredNode);
+  const nodes = ethereumTracker.getNodes();
+  const attributes = nodes.get(hoveredNode);
 
   return (
     <div

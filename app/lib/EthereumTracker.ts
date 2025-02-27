@@ -9,7 +9,7 @@ const MAX_MEMPOOL_SIZE = 2000;
 class EthereumTracker {
     private static instance: EthereumTracker;
     private mempool: Transaction[] = [];
-    private nodeAttributes: Map<string, AddressInfo> = new Map();
+    private nodes: Map<string, AddressInfo> = new Map();
 
     public static getInstance(): EthereumTracker {
         if (!EthereumTracker.instance) {
@@ -32,7 +32,7 @@ class EthereumTracker {
         this.updateNetBalanceFromTransaction(tx);
     }
 
-    public createAttributesFromResponse(response: AddressInfoResponse, isContract: boolean) {
+    public simplifyAttributes(response: AddressInfoResponse, isContract: boolean) {
         if (response.length === 0) {
             return { isContract: isContract };
         }
@@ -63,7 +63,7 @@ class EthereumTracker {
         return { address, labels, names, websites, nameTags, symbols, isContract: isContract };
     }
 
-    public async setNodeAttributes(address: string, isTo=false) {
+    public async fetchAttributesAndSaveNode(address: string, isTo=false) {
         const nodeAttributes: AddressInfoResponse = await EthereumApiClient.getInstance().getInfo(address);
 
         let isContract = false;
@@ -74,21 +74,17 @@ class EthereumTracker {
             }
         }
 
-        const attributes = this.createAttributesFromResponse(nodeAttributes, isContract);
-        this.nodeAttributes.set(address, attributes);
+        const attributes = this.simplifyAttributes(nodeAttributes, isContract);
+        this.nodes.set(address, attributes);
     }
 
-    public getNodeAttributes(address: string) {
-        return this.nodeAttributes.get(address);
-    }
-
-    public getAllNodeAttributes() {
-        return this.nodeAttributes;
+    public getNodes() {
+        return this.nodes;
     }
 
     public async addNewAddress(address: string, isTo=false) {
-        await this.setNodeAttributes(address, isTo);
-        const isContract = this.getNodeAttributes(address)?.isContract || false;
+        await this.fetchAttributesAndSaveNode(address, isTo);
+        const isContract = this.nodes.get(address)?.isContract || false;
 
         eventEmitter.emit(EventType.AddAddressToGraph, address, isContract);
     }
@@ -98,10 +94,10 @@ class EthereumTracker {
             this.shiftMempool();
         }
 
-        if (!this.getNodeAttributes(tx.from)) {
+        if (!this.nodes.get(tx.from)) {
             await this.addNewAddress(tx.from);
         }
-        if (!this.getNodeAttributes(tx.to)) {
+        if (!this.nodes.get(tx.to)) {
             await this.addNewAddress(tx.to, true);
         }
 
@@ -109,11 +105,11 @@ class EthereumTracker {
     }
 
     public getNetBalance(node: string) {
-        return this.nodeAttributes.get(node)?.netBalance || 0;
+        return this.nodes.get(node)?.netBalance || 0;
     }
 
     public setNetBalance(node: string, value: number) {
-        this.nodeAttributes.get(node)!.netBalance = value;
+        this.nodes.get(node)!.netBalance = value;
     }
 
     public updateNetBalance(tx: Transaction, value: number, is_sender: boolean) {
