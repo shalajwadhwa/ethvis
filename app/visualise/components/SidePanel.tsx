@@ -2,6 +2,8 @@ import EthereumTracker from "@/app/lib/EthereumTracker";
 import eventEmitter from "@/app/lib/EventEmitter";
 import { EventType } from "@/app/types/event";
 import React, { useEffect, useState } from "react";
+import PanelItem from "./PanelItem";
+import { AddressInfo } from "@/app/types/graph";
 
 const SidePanel = ({
   ethereumTracker,
@@ -38,7 +40,7 @@ const SidePanel = ({
       <ul>
         {[...nodeAttributes].map(([key, value]) => (
           <li key={key}>
-            {key}: {JSON.stringify(value)}
+            <PanelItem addressInfo={value as AddressInfo} />
           </li>
         ))}
       </ul>
