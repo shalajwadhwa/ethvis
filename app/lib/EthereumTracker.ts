@@ -8,7 +8,6 @@ const MAX_MEMPOOL_SIZE = 2000;
 
 class EthereumTracker {
     private static instance: EthereumTracker;
-    private netBalance: Map<string, number> = new Map();
     private mempool: Transaction[] = [];
     private nodeAttributes: Map<string, AddressInfo> = new Map();
 
@@ -99,21 +98,29 @@ class EthereumTracker {
             this.shiftMempool();
         }
 
-        if (!this.netBalance.has(tx.from)) {
+        if (!this.getNodeAttributes(tx.from)) {
             await this.addNewAddress(tx.from);
         }
-        if (!this.netBalance.has(tx.to)) {
+        if (!this.getNodeAttributes(tx.to)) {
             await this.addNewAddress(tx.to, true);
         }
 
         this.appendMempool(tx);
     }
 
+    public getNetBalance(node: string) {
+        return this.nodeAttributes.get(node)?.netBalance || 0;
+    }
+
+    public setNetBalance(node: string, value: number) {
+        this.nodeAttributes.get(node)!.netBalance = value;
+    }
+
     public updateNetBalance(tx: Transaction, value: number, is_sender: boolean) {
         const node = is_sender ? tx.from : tx.to;
 
-        const prev_balance = this.netBalance.get(node) || 0;
-        this.netBalance.set(node, prev_balance + value);
+        const prev_balance = this.getNetBalance(node);
+        this.setNetBalance(node, prev_balance + value);
         eventEmitter.emit(EventType.UpdateNodeNetBalance, tx, value, is_sender);
     }
 
