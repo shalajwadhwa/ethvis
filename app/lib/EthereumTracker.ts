@@ -112,20 +112,39 @@ class EthereumTracker {
         return this.topNodes;
     }
 
-    public setNetBalance(node: string, value: number) {
-        this.nodes.get(node)!.netBalance = value;
-
-        if (value > this.topNodeThreshold) {
-            if (this.topNodes.length >= TOP_NODES_SIZE) {
-                this.topNodes.pop();
-            }
-
-            this.topNodes.push(this.nodes.get(node)!);
-            this.topNodes.sort((a, b) => b.netBalance! - a.netBalance!);
-            this.topNodeThreshold = this.topNodes[length - 1].netBalance!;
+    private appendTopNodes(node: string) {
+        if (this.topNodes.some(topNode => topNode.address === node)) {
+            return;
         }
 
-        eventEmitter.emit(EventType.NewTopNode, this.topNodes);
+        if (this.topNodes.length >= TOP_NODES_SIZE) {
+            this.topNodes.pop();
+        }
+
+        this.topNodes.push(this.nodes.get(node)!);
+    }
+
+    private sortTopNodes() {
+        this.topNodes.sort((a, b) => b.netBalance! - a.netBalance!);
+        const length = this.topNodes.length;
+        this.topNodeThreshold = this.topNodes[length - 1].netBalance!;
+    }
+
+    public updateTopNodes(node: string, value: number) {
+        if (!this.nodes.get(node)) {
+            return;
+        }
+
+        if (value >= this.topNodeThreshold || this.topNodes.length < TOP_NODES_SIZE) {
+            this.appendTopNodes(node);
+            this.sortTopNodes();
+            eventEmitter.emit(EventType.NewTopNode, this.topNodes);
+        }
+    }
+
+    public setNetBalance(node: string, value: number) {
+        this.nodes.get(node)!.netBalance = value;
+        this.updateTopNodes(node, value);
     }
 
     public updateNetBalance(tx: Transaction, value: number, is_sender: boolean) {
