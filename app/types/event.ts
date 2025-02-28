@@ -1,4 +1,5 @@
 import { Transaction } from '@/app/types/transaction';
+import { Attributes } from '@/app/types/graph';
 
 export interface NewPendingTransactionEvent {
     type: EventType.NewPendingTransaction;
@@ -8,7 +9,7 @@ export interface NewPendingTransactionEvent {
 export interface AddAddressToGraphEvent {
     type: EventType.AddAddressToGraph;
     address: string;
-    attributes: any;
+    isContract: boolean;
 }
 
 export interface AddTransactionToGraphEvent {
@@ -22,9 +23,15 @@ export interface UpdateNodeNetBalanceEvent {
     netBalance: number;
 }
 
+export interface NewTopNodeEvent {
+    type: EventType.NewTopNode;
+    topNodes: Attributes[];
+}
+
 export enum EventType {
     NewPendingTransaction = 'newPendingTransactions',
     AddAddressToGraph = 'addAddressToGraph',
     AddTransactionToGraph = 'addTransactionToGraph',
     UpdateNodeNetBalance = 'updateNodeNetBalance',
+    NewTopNode = 'newTopNode',
 }

@@ -5,6 +5,7 @@ import EthereumApiClient from "@/app/lib/EthereumApiClient";
 import { AddressInfo, AddressInfoResponse, Attributes } from '@/app/types/graph';
 
 const MAX_MEMPOOL_SIZE = 2000;
+const TOP_NODES_SIZE = 10;
 
 enum ATTRIBUTES {
     LABEL = 'label',
@@ -18,6 +19,8 @@ class EthereumTracker {
     private static instance: EthereumTracker;
     private mempool: Transaction[] = [];
     private nodes: Map<string, Attributes> = new Map();
+    private topNodes: Attributes[] = [];
+    private topNodeThreshold: number = 0;
 
     public static getInstance(): EthereumTracker {
         if (!EthereumTracker.instance) {
@@ -107,8 +110,24 @@ class EthereumTracker {
         return this.nodes.get(node)?.netBalance || 0;
     }
 
+    public getTopNodes() {
+        return this.topNodes;
+    }
+
     public setNetBalance(node: string, value: number) {
         this.nodes.get(node)!.netBalance = value;
+
+        if (value > this.topNodeThreshold) {
+            if (this.topNodes.length >= TOP_NODES_SIZE) {
+                this.topNodes.pop();
+            }
+
+            this.topNodes.push(this.nodes.get(node)!);
+            this.topNodes.sort((a, b) => b.netBalance! - a.netBalance!);
+            this.topNodeThreshold = this.topNodes[length - 1].netBalance!;
+        }
+
+        eventEmitter.emit(EventType.NewTopNode, this.topNodes);
     }
 
     public updateNetBalance(tx: Transaction, value: number, is_sender: boolean) {

@@ -3,22 +3,21 @@ import eventEmitter from "@/app/lib/EventEmitter";
 import { EventType } from "@/app/types/event";
 import React, { useEffect, useState } from "react";
 import PanelItem from "@/app/visualise/components/PanelItem";
-import { AddressInfo } from "@/app/types/graph";
+import { Attributes } from "@/app/types/graph";
 
 const SidePanel = ({
   ethereumTracker,
 }: {
   ethereumTracker: EthereumTracker;
 }) => {
-  const [nodes, setNodes] = useState(ethereumTracker.getNodes());
+  const [nodes, setNodes] = useState(ethereumTracker.getTopNodes());
 
   useEffect(() => {
     const updateAttributes = () => {
-      setNodes(new Map(ethereumTracker.getNodes()));
+      setNodes([...ethereumTracker.getTopNodes()]);
     };
 
-    eventEmitter.on(EventType.AddTransactionToGraph, updateAttributes);
-    eventEmitter.on(EventType.UpdateNodeNetBalance, updateAttributes);
+    eventEmitter.on(EventType.NewTopNode, updateAttributes);
 
   }, [ethereumTracker]);
 
@@ -36,13 +35,11 @@ const SidePanel = ({
       }}
     >
       <ul>
-        {[...nodes]
-          .sort((a, b) => ((b[1] as AddressInfo).netBalance ?? 0) - ((a[1] as AddressInfo).netBalance ?? 0))
-          .map(([key, value]) => (
-            <li key={key} style={{ padding: "5px" }}>
-              <PanelItem addressInfo={value as AddressInfo} />
-            </li>
-          ))}
+        {Array.from(nodes.values()).map((node: Attributes, index: number) => (
+          <li key={index} style={{ padding: "5px" }}>
+            <PanelItem attributes={node as Attributes}/>
+          </li>
+        ))}
       </ul>
     </div>
   );
