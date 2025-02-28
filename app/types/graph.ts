@@ -14,6 +14,17 @@ export type AddressInfo = {
 
 export type AddressInfoResponse = AddressInfo[];
 
+export type Attributes = {
+  address: string;
+  label?: Set<string>;
+  name?: Set<string>;
+  website?: Set<string>;
+  symbol?: Set<string>;
+  nameTag?: Set<string>;
+  netBalance?: number;
+  isContract: boolean;
+}
+
 export type NodeType = {
   x: number;
   y: number;
