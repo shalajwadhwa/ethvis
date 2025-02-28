@@ -31,7 +31,7 @@ const NodeAttributes = ({
         <ul>
           {Object.entries(attributes).map(([key, value]) => (
             <li key={key}>
-              {key}: {key === 'isContract' ? value.toString() : value}
+              {key}: {key === 'isContract' ? value.toString() : key === 'netBalance' ? (Number(value) / 10**18).toString() : value}
             </li>
           ))}
         </ul>
