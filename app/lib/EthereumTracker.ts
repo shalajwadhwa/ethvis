@@ -2,14 +2,22 @@ import eventEmitter from '@/app/lib/EventEmitter';
 import { Transaction } from '@/app/types/transaction';
 import { EventType } from '@/app/types/event';
 import EthereumApiClient from "@/app/lib/EthereumApiClient";
-import { AddressInfo, AddressInfoResponse } from '@/app/types/graph';
+import { AddressInfo, AddressInfoResponse, Attributes } from '@/app/types/graph';
 
 const MAX_MEMPOOL_SIZE = 2000;
+
+enum ATTRIBUTES {
+    LABEL = 'label',
+    NAME = 'name',
+    WEBSITE = 'website',
+    NAMETAG = 'nameTag',
+    SYMBOL = 'symbol',
+}
 
 class EthereumTracker {
     private static instance: EthereumTracker;
     private mempool: Transaction[] = [];
-    private nodes: Map<string, AddressInfo> = new Map();
+    private nodes: Map<string, Attributes> = new Map();
 
     public static getInstance(): EthereumTracker {
         if (!EthereumTracker.instance) {
@@ -32,35 +40,26 @@ class EthereumTracker {
         this.updateNetBalanceFromTransaction(tx);
     }
 
-    public simplifyAttributes(response: AddressInfoResponse, isContract: boolean) {
+    public simplifyAttributes(address: string, response: AddressInfoResponse, isContract: boolean) {
         if (response.length === 0) {
-            return { isContract: isContract };
+            return { address, isContract };
         }
-        const address = response[0].address;
-        const labels = new Set();
-        const names = new Set();
-        const websites = new Set();
-        const nameTags = new Set();
-        const symbols = new Set();
+    
+        const result: Attributes = { address: address, isContract };
         for (const entry of response) {
-            if (entry.label) {
-                labels.add(entry.label);
-            }
-            if (entry.name) {
-                names.add(entry.name);
-            }
-            if (entry.website) {
-                websites.add(entry.website);
-            }
-            if (entry.nameTag) {
-                nameTags.add(entry.nameTag);
-            }
-            if (entry.symbol) {
-                symbols.add(entry.symbol);
+            for (const attribute of Object.values(ATTRIBUTES)) {
+                const value = entry[attribute as keyof AddressInfo];
+                if (value) {
+                    if (!result[attribute]) {
+                        result[attribute] = new Set();
+                    }
+                    if (typeof value === 'string') {
+                        result[attribute].add(value);
+                    }
+                }
             }
         }
-
-        return { address, labels, names, websites, nameTags, symbols, isContract: isContract };
+        return result;
     }
 
     public async fetchAttributesAndSaveNode(address: string, isTo=false) {
@@ -74,7 +73,7 @@ class EthereumTracker {
             }
         }
 
-        const attributes = this.simplifyAttributes(nodeAttributes, isContract);
+        const attributes = this.simplifyAttributes(address, nodeAttributes, isContract);
         this.nodes.set(address, attributes);
     }
 
