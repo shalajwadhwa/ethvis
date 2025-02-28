@@ -10,11 +10,11 @@ const SidePanel = ({
 }: {
   ethereumTracker: EthereumTracker;
 }) => {
-  const [nodeAttributes, setNodeAttributes] = useState(ethereumTracker.getNodes());
+  const [nodes, setNodes] = useState(ethereumTracker.getNodes());
 
   useEffect(() => {
     const updateAttributes = () => {
-      setNodeAttributes(ethereumTracker.getNodes());
+      setNodes(new Map(ethereumTracker.getNodes()));
     };
 
     eventEmitter.on(EventType.AddTransactionToGraph, updateAttributes);
@@ -36,11 +36,13 @@ const SidePanel = ({
       }}
     >
       <ul>
-        {[...nodeAttributes].map(([key, value]) => (
-          <li key={key} style={{ padding: "5px" }}>
-            <PanelItem addressInfo={value as AddressInfo} />
-          </li>
-        ))}
+        {[...nodes]
+          .sort((a, b) => ((b[1] as AddressInfo).netBalance ?? 0) - ((a[1] as AddressInfo).netBalance ?? 0))
+          .map(([key, value]) => (
+            <li key={key} style={{ padding: "5px" }}>
+              <PanelItem addressInfo={value as AddressInfo} />
+            </li>
+          ))}
       </ul>
     </div>
   );
