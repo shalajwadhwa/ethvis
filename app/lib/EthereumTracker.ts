@@ -43,12 +43,9 @@ class EthereumTracker {
         this.updateNetBalanceFromTransaction(tx);
     }
 
-    public simplifyAttributes(address: string, response: AddressInfoResponse, isContract: boolean) {
-        if (response.length === 0) {
-            return { address, isContract };
-        }
-    
-        const result: Attributes = { address: address, isContract };
+    public simplifyAttributes(address: string, response: AddressInfoResponse, isContract: boolean): Attributes {
+        const result: Attributes = { address: address, isContract, netBalance: 0 };
+
         for (const entry of response) {
             for (const attribute of Object.values(ATTRIBUTES)) {
                 const value = entry[attribute as keyof AddressInfo];
@@ -62,6 +59,7 @@ class EthereumTracker {
                 }
             }
         }
+
         return result;
     }
 

@@ -21,7 +21,7 @@ export type Attributes = {
   website?: Set<string>;
   symbol?: Set<string>;
   nameTag?: Set<string>;
-  netBalance?: number;
+  netBalance: number;
   isContract: boolean;
 }
 
