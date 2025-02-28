@@ -50,7 +50,7 @@ const VisualisePage = () => {
         <Fa2Graph setHoveredNode={setHoveredNode} />
       </SigmaContainer>
       <NodeAttributes hoveredNode={hoveredNode} ethereumTracker={ethereumTracker.current}/>
-      <SidePanel ethereumTracker={ethereumTracker.current}></SidePanel>
+      <SidePanel ethereumTracker={ethereumTracker.current}/>
     </div>
   );
 };
