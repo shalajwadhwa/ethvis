@@ -9,12 +9,12 @@ const CONTRACT_COLOUR = 'blue';
 const NEGATIVE_COLOUR = 'red';
 const POSITIVE_COLOUR = 'green';
 
-const NUM_COLOUR_BINS = 40;
+const NUM_COLOUR_BINS = 5;
 const MAX_TRANSACTION_VALUE = 4 * 1e18;
 const BIN_INTERVAL = MAX_TRANSACTION_VALUE / NUM_COLOUR_BINS;
 
-const negativeScale = new Values(NEGATIVE_COLOUR).shades(NUM_COLOUR_BINS);
-const positiveScale = new Values(POSITIVE_COLOUR).shades(NUM_COLOUR_BINS);
+const negativeScale = new Values(NEGATIVE_COLOUR).all(NUM_COLOUR_BINS);
+const positiveScale = new Values(POSITIVE_COLOUR).all(NUM_COLOUR_BINS);
 
 
 class GraphHandler {
@@ -68,7 +68,7 @@ class GraphHandler {
       if (interval >= NUM_COLOUR_BINS) {
         interval = NUM_COLOUR_BINS - 1;
       }
-      const colour = positiveScale[interval].hexString();
+      const colour = positiveScale[interval] ? positiveScale[interval].hexString() : POSITIVE_COLOUR;
       this.setNodeColour(sigma, node, colour);
     }
     else if (netBalance < 0) {
@@ -76,7 +76,7 @@ class GraphHandler {
       if (interval >= NUM_COLOUR_BINS) {
         interval = NUM_COLOUR_BINS - 1;
       }
-      const colour = negativeScale[interval].hexString();
+      const colour = negativeScale[interval] ? negativeScale[interval].hexString() : NEGATIVE_COLOUR;
       this.setNodeColour(sigma, node, colour);
     }
     else {
