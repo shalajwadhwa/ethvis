@@ -143,6 +143,16 @@ class EthereumTracker {
     }
 
     public setNetBalance(node: string, value: number) {
+        if (!this.nodes.has(node)) {
+            // Create a new node if it doesn't exist
+            this.nodes.set(node, {
+                address: node,
+                netBalance: 0,
+                isContract: false
+            });
+        }
+        
+        // Now we can safely set the netBalance
         this.nodes.get(node)!.netBalance = value;
         this.updateTopNodes(node, value);
     }
