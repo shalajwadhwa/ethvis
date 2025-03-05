@@ -55,16 +55,16 @@ const VisualisePage = () => {
           </SigmaContainer>
 
           <NodeAttributes hoveredNode={hoveredNode} ethereumTracker={ethereumTracker.current}/>
+
+          <div className="absolute bottom-4 right-4 z-10">
+            <ModeToggle />
+          </div>
         </ResizablePanel>
 
         <ResizableHandle withHandle />
 
         <ResizablePanel defaultSize={20}>
           <SidePanel ethereumTracker={ethereumTracker.current} />
-
-          <div className="absolute bottom-4 right-4 z-10">
-            <ModeToggle />
-          </div>
         </ResizablePanel>
       </ResizablePanelGroup>
   );
