@@ -1,16 +1,46 @@
-.dark-mode {
-    background-color: #121212;
-    color: #ffffff;
+:root {
+  /* Light mode color variables */
+  --bg-color: white;
+  --text-color: #333333;
+  --border-color: #e5e7eb;
+  --node-color: #333333;
+  --edge-color: #666666;
+  --link-color: #3b82f6;  /* blue-500 */
+}
+
+/* Light mode (default) */
+.sigma-container {
+  background-color: var(--bg-color);
+}
+
+.sigma-node {
+  fill: var(--node-color);
+}
+
+.sigma-edge {
+  stroke: var(--edge-color);
+}
+
+.side-panel {
+  background-color: var(--bg-color);
+  color: var(--text-color);
+}
+
+.panel-item {
+  background-color: var(--bg-color);
+  border-color: var(--border-color);
+  color: var(--text-color);
+}
+
+/* Dark mode (using @media query instead of class selector) */
+@media (prefers-color-scheme: dark) {
+  :root {
+    /* Dark mode color variables */
+    --bg-color: #121212;
+    --text-color: #ffffff;
+    --border-color: #4a4a4a;
+    --node-color: #ffffff;
+    --edge-color: #ffffff;
+    --link-color: #60a5fa;  /* blue-400 */
   }
-  
-  .dark-mode .sigma-container {
-    background-color: #121212;
-  }
-  
-  .dark-mode .sigma-node {
-    fill: #ffffff;
-  }
-  
-  .dark-mode .sigma-edge {
-    stroke: #ffffff;
-  }
+}

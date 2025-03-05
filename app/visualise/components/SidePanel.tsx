@@ -22,21 +22,10 @@ const SidePanel = ({
   }, [ethereumTracker]);
 
   return (
-    <div
-      style={{
-        position: "absolute",
-        top: "10px",
-        right: "10px",
-        padding: "8px",
-        borderRadius: "5px",
-        maxHeight: "50vh",
-        maxWidth: "20vw",
-        overflowY: "auto",
-      }}
-    >
+    <div className="p-2 h-screen w-full overflow-y-auto scrollbar-hide side-panel">
       <ul>
         {Array.from(nodes.values()).map((node: Attributes, index: number) => (
-          <li key={index} style={{ padding: "5px" }}>
+          <li key={index} className="py-1.5">
             <PanelItem attributes={node as Attributes}/>
           </li>
         ))}
