@@ -46,6 +46,10 @@ class EthereumTracker {
     public simplifyAttributes(address: string, response: AddressInfoResponse, isContract: boolean): Attributes {
         const result: Attributes = { address: address, isContract, netBalance: 0 };
 
+        if (!response) {
+            return result;
+        }
+
         for (const entry of response) {
             for (const attribute of Object.values(ATTRIBUTES)) {
                 const value = entry[attribute as keyof AddressInfo];
