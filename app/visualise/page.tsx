@@ -47,8 +47,8 @@ const VisualisePage = () => {
   }, [sigma]);
 
   return (
-      <ResizablePanelGroup direction="horizontal" className="flex h-screen">
-        <ResizablePanel defaultSize={80} className="relative">
+      <ResizablePanelGroup direction="horizontal">
+        <ResizablePanel defaultSize={80}>
           <SigmaContainer ref={setSigma} className="w-full h-screen">
             <Fa2Graph setHoveredNode={setHoveredNode} />
           </SigmaContainer>
@@ -58,7 +58,7 @@ const VisualisePage = () => {
 
         <ResizableHandle />
 
-        <ResizablePanel defaultSize={20} className="relative">
+        <ResizablePanel defaultSize={20}>
           <SidePanel ethereumTracker={ethereumTracker.current} />
         </ResizablePanel>
       </ResizablePanelGroup>
