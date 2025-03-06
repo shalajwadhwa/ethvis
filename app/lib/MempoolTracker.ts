@@ -15,16 +15,16 @@ class MempoolTracker {
   }
 
   private append(tx: Transaction) {
+    this.mempool.push(tx);
+    eventEmitter.emit(EventType.MempoolUpdate, tx, MempoolUpdateEventType.Add);
+    eventEmitter.emit(EventType.AddTransactionToGraph, tx);
+
     if (this.mempool.length >= MAX_MEMPOOL_SIZE) {
       const to_remove = this.mempool.shift();
       if (to_remove) {
           eventEmitter.emit(EventType.MempoolUpdate, to_remove, MempoolUpdateEventType.Remove);
       }
     }
-
-    this.mempool.push(tx);
-    eventEmitter.emit(EventType.MempoolUpdate, tx, MempoolUpdateEventType.Add);
-    eventEmitter.emit(EventType.AddTransactionToGraph, tx);
   }
 }
 

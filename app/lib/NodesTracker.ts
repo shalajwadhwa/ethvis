@@ -23,7 +23,7 @@ class NodesTracker {
 
         eventEmitter.on(
             EventType.MempoolUpdate,
-            (tx, eventType) => this.updateNetBalanceFromTransaction(tx, eventType === MempoolUpdateEventType.Remove)
+            (tx, eventType) => this.updateNodesFromTransaction(tx, eventType === MempoolUpdateEventType.Remove)
         )
     }
 
@@ -36,7 +36,7 @@ class NodesTracker {
     }
 
     private simplifyAttributes(address: string, response: AddressInfoResponse, isContract: boolean): Attributes {
-        const result: Attributes = { address: address, isContract, netBalance: 0 };
+        const result: Attributes = { address: address, isContract, netBalance: 0, numTransactions: 0 };
 
         if (!response) {
             return result;
@@ -81,32 +81,31 @@ class NodesTracker {
         eventEmitter.emit(EventType.AddAddressToGraph, address, isContract);
     }
 
-    private setNetBalance(address: string, value: number): void {
-        if (!this.nodes.has(address)) {
-            // Create a new node if it doesn't exist
-            this.nodes.set(address, {
-                address: address,
-                netBalance: 0,
-                isContract: false
-            });
+    private updateNode(tx: Transaction, value: number, is_sender: boolean, is_removed: boolean): void {
+        const address: string = is_sender ? tx.from : tx.to;
+        const node = this.nodes.get(address);
+        
+        if (!node) return;
+        
+        node.numTransactions += is_removed ? -1 : 1;
+        
+        if (node.numTransactions === 0) {
+            this.nodes.delete(address);
+            eventEmitter.emit(EventType.RemoveAddressFromGraph, address);
+            return;
         }
         
-        this.nodes.get(address)!.netBalance = value;
-        eventEmitter.emit(EventType.UpdateNodeNetBalance, address, value);
+        const newBalance = node.netBalance + value;
+        node.netBalance = newBalance;
+        eventEmitter.emit(EventType.UpdateNodeNetBalance, address, newBalance);
     }
 
-    private updateNetBalance(tx: Transaction, value: number, is_sender: boolean) {
-        const node: string = is_sender ? tx.from : tx.to;
-
-        const prev_balance: number = this.nodes.get(node)?.netBalance || 0;
-        this.setNetBalance(node, prev_balance + value);
-    }
-
-    private updateNetBalanceFromTransaction(tx: Transaction, is_removed: boolean = false) {
+    private updateNodesFromTransaction(tx: Transaction, is_removed: boolean = false) {
+        // todo: fix ghost nodes issue (nodes without transactions)
         const reverse_tx_multiplier = is_removed ? -1 : 1;
 
-        this.updateNetBalance(tx, -Number(tx.value) * reverse_tx_multiplier, true);
-        this.updateNetBalance(tx, Number(tx.value) * reverse_tx_multiplier, false);
+        this.updateNode(tx, -Number(tx.value) * reverse_tx_multiplier, true, is_removed);
+        this.updateNode(tx, Number(tx.value) * reverse_tx_multiplier, false, is_removed);
     }
 
     private async addNodesFromTransaction(tx: Transaction) {

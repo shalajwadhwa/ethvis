@@ -26,6 +26,10 @@ class GraphHandler {
       (address, isContract) => GraphHandler.addNode(sigma, address, isContract)
     );
     eventEmitter.on(
+      EventType.RemoveAddressFromGraph,
+      (address) => GraphHandler.removeNode(sigma, address)
+    );
+    eventEmitter.on(
       EventType.AddTransactionToGraph,
       (tx) => GraphHandler.addTransaction(sigma, tx)
     );
@@ -44,6 +48,17 @@ class GraphHandler {
     const colour = isContract ? CONTRACT_COLOUR : DEFAULT_COLOUR;
     if (!graph.hasNode(node)) {
       graph.addNode(node, { label: node, x: Math.random(), y: Math.random(), size: 4, color: colour, isContract: isContract });
+    }
+  }
+
+  public static removeNode(sigma: Sigma<NodeType, EdgeType>, node: string): void {
+    const graph: Graph = sigma.getGraph();
+    if (!graph) {
+      return;
+    }
+
+    if (graph.hasNode(node)) {
+      graph.dropNode(node);
     }
   }
 

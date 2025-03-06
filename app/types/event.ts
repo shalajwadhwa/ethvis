@@ -17,6 +17,11 @@ export interface AddAddressToGraphEvent {
     isContract: boolean;
 }
 
+export interface RemoveAddressFromGraphEvent {
+    type: EventType.RemoveAddressFromGraph;
+    address: string;
+}
+
 export interface AddTransactionToGraphEvent {
     type: EventType.AddTransactionToGraph;
     tx: Transaction;
@@ -50,6 +55,7 @@ export enum EventType {
     MempoolUpdate = 'mempoolUpdate',
     AddAddressToGraph = 'addAddressToGraph',
     AddTransactionToGraph = 'addTransactionToGraph',
+    RemoveAddressFromGraph = 'removeAddressFromGraph',
     UpdateNodeNetBalance = 'updateNodeNetBalance',
     NewTopNode = 'newTopNode',
 }

@@ -23,6 +23,7 @@ export type Attributes = {
   nameTag?: Set<string>;
   netBalance: number;
   isContract: boolean;
+  numTransactions: number;
 }
 
 export type NodeType = {
