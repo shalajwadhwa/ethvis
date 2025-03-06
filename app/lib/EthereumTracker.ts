@@ -1,6 +1,6 @@
 import eventEmitter from '@/app/lib/EventEmitter';
 import { Transaction } from '@/app/types/transaction';
-import { EventType } from '@/app/types/event';
+import { EventType, MempoolUpdateEventType } from '@/app/types/event';
 import TopNodesTracker from '@/app/lib/TopNodesTracker';
 import MempoolTracker from '@/app/lib/MempoolTracker';
 import NodesTracker from '@/app/lib/NodesTracker';
@@ -24,38 +24,16 @@ class EthereumTracker {
     }
 
     public setSigma(sigma: Sigma<NodeType, EdgeType>) { 
-        eventEmitter.on(
-            EventType.NewPendingTransaction, 
-            (tx) => this.addPendingTransaction(tx)
-        );
-
         this.graphHandler = new GraphHandler(sigma);
 
         eventEmitter.on(
             EventType.UpdateNodeNetBalance, (node) => this.updateTopNodes(node)
         );
-    }
 
-    public shiftMempool() {
-        const to_remove = this.mempoolTracker.shift();
-        if (to_remove) {
-            this.updateNetBalanceFromTransaction(to_remove, true);
-        }
-    }
-
-    public appendMempool(tx: Transaction) {
-        this.mempoolTracker.append(tx);
-        this.updateNetBalanceFromTransaction(tx);
-    }
-
-    public async addPendingTransaction(tx: Transaction) {
-        if (this.mempoolTracker.isAtCapacity()) {
-            this.shiftMempool();
-        }
-
-        await this.nodesTracker.addNodesFromTransaction(tx);
-
-        this.appendMempool(tx);
+        eventEmitter.on(
+            EventType.MempoolUpdate,
+            (tx, eventType) => this.updateNetBalanceFromTransaction(tx, eventType === MempoolUpdateEventType.Remove)
+        )
     }
 
     public getNodeAttributes(node: string) {

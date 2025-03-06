@@ -1,31 +1,30 @@
 import eventEmitter from '@/app/lib/EventEmitter';
 import { Transaction } from '@/app/types/transaction';
-import { EventType } from '@/app/types/event';
+import { EventType, MempoolUpdateEventType } from '@/app/types/event';
 
 const MAX_MEMPOOL_SIZE = 2000;
 
 class MempoolTracker {
   private mempool: Transaction[] = [];
-  
-  public getMempool(): Transaction[] {
-    return this.mempool;
+
+  public constructor() {
+    eventEmitter.on(
+      EventType.AddTransactionToMempool,
+      (tx) => this.append(tx)
+    );
   }
-  
-  public getMempoolSize(): number {
-    return this.mempool.length;
-  }
-  
-  public shift(): Transaction | undefined {
-    return this.mempool.shift();
-  }
-  
-  public append(tx: Transaction): void {
+
+  private append(tx: Transaction) {
+    if (this.mempool.length >= MAX_MEMPOOL_SIZE) {
+      const to_remove = this.mempool.shift();
+      if (to_remove) {
+          eventEmitter.emit(EventType.MempoolUpdate, to_remove, MempoolUpdateEventType.Remove);
+      }
+    }
+
     this.mempool.push(tx);
+    eventEmitter.emit(EventType.MempoolUpdate, tx, MempoolUpdateEventType.Add);
     eventEmitter.emit(EventType.AddTransactionToGraph, tx);
-  }
-  
-  public isAtCapacity(): boolean {
-    return this.mempool.length >= MAX_MEMPOOL_SIZE;
   }
 }
 

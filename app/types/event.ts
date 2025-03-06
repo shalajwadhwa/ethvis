@@ -6,6 +6,11 @@ export interface NewPendingTransactionEvent {
     tx: Transaction;
 }
 
+export interface AddTransactionToMempoolEvent {
+    type: EventType.AddTransactionToMempool;
+    tx: Transaction;
+}
+
 export interface AddAddressToGraphEvent {
     type: EventType.AddAddressToGraph;
     address: string;
@@ -28,8 +33,21 @@ export interface NewTopNodeEvent {
     topNodes: Attributes[];
 }
 
+export interface MempoolUpdateEvent {
+    type: EventType.MempoolUpdate;
+    tx: Transaction;
+    eventType: MempoolUpdateEventType;
+}
+
+export enum MempoolUpdateEventType {
+    Add = 'add',
+    Remove = 'remove',
+}
+
 export enum EventType {
     NewPendingTransaction = 'newPendingTransactions',
+    AddTransactionToMempool = 'addTransactionToMempool',
+    MempoolUpdate = 'mempoolUpdate',
     AddAddressToGraph = 'addAddressToGraph',
     AddTransactionToGraph = 'addTransactionToGraph',
     UpdateNodeNetBalance = 'updateNodeNetBalance',

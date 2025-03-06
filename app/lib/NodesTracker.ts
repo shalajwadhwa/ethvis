@@ -15,6 +15,13 @@ enum ATTRIBUTES {
 class NodesTracker {
     private nodes: Map<string, Attributes> = new Map();
 
+    public constructor() {
+        eventEmitter.on(
+            EventType.NewPendingTransaction,
+            (tx) => this.addNodesFromTransaction(tx)
+        )
+    }
+
     public getNodes(): Map<string, Attributes> {
         return this.nodes;
     }
@@ -69,10 +76,6 @@ class NodesTracker {
         eventEmitter.emit(EventType.AddAddressToGraph, address, isContract);
     }
 
-    public getNetBalance(address: string): number {
-        return this.nodes.get(address)?.netBalance || 0;
-    }
-
     private setNetBalance(address: string, value: number): void {
         if (!this.nodes.has(address)) {
             // Create a new node if it doesn't exist
@@ -90,18 +93,20 @@ class NodesTracker {
     public updateNetBalance(tx: Transaction, value: number, is_sender: boolean) {
         const node: string = is_sender ? tx.from : tx.to;
 
-        const prev_balance: number = this.getNetBalance(node);
+        const prev_balance: number = this.nodes.get(node)?.netBalance || 0;
         this.setNetBalance(node, prev_balance + value);
     }
 
-    public async addNodesFromTransaction(tx: Transaction) {
-            if (!this.nodes.has(tx.from)) {
-                await this.addNewAddress(tx.from);
-            }
-            if (!this.nodes.has(tx.to)) {
-                await this.addNewAddress(tx.to, true);
-            }
+    private async addNodesFromTransaction(tx: Transaction) {
+        if (!this.nodes.has(tx.from)) {
+            await this.addNewAddress(tx.from);
         }
+        if (!this.nodes.has(tx.to)) {
+            await this.addNewAddress(tx.to, true);
+        }
+
+        eventEmitter.emit(EventType.AddTransactionToMempool, tx);
+    }
 }
 
 export default NodesTracker;
