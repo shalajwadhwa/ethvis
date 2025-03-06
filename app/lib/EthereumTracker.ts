@@ -13,6 +13,7 @@ class EthereumTracker {
     private nodesTracker: NodesTracker = new NodesTracker();
     private topNodesTracker: TopNodesTracker = new TopNodesTracker();
     private mempoolTracker: MempoolTracker = new MempoolTracker();
+    private graphHandler: GraphHandler | null = null;
 
     public static getInstance(): EthereumTracker {
         if (!EthereumTracker.instance) {
@@ -26,17 +27,8 @@ class EthereumTracker {
         eventEmitter.on(EventType.NewPendingTransaction, (tx) =>
             this.addPendingTransaction(tx)
           );
-        eventEmitter.on(EventType.AddAddressToGraph, (address, isContract) =>
-            GraphHandler.addNode(sigma, address, isContract)
-        );
-        eventEmitter.on(EventType.AddTransactionToGraph, (tx) =>
-            GraphHandler.addTransaction(sigma, tx)
-        );
-        eventEmitter.on(
-            EventType.UpdateNodeNetBalance,
-        (tx, netBalance, is_sender) =>
-            GraphHandler.updateNodeColour(sigma, tx, netBalance, is_sender)
-        );
+
+        this.graphHandler = new GraphHandler(sigma);
     }
 
     public shiftMempool() {
