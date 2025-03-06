@@ -5,7 +5,7 @@ import EthereumApiClient from "@/app/lib/EthereumApiClient";
 import { AddressInfo, AddressInfoResponse, Attributes } from '@/app/types/graph';
 
 const MAX_MEMPOOL_SIZE = 2000;
-const TOP_NODES_SIZE = 10;
+const TOP_NODES_SIZE = 20;
 
 enum ATTRIBUTES {
     LABEL = 'label',
