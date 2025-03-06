@@ -4,8 +4,7 @@ import { EventType } from '@/app/types/event';
 import EthereumApiClient from "@/app/lib/EthereumApiClient";
 import { AddressInfo, AddressInfoResponse, Attributes } from '@/app/types/graph';
 import TopNodesTracker from '@/app/lib/TopNodesTracker';
-
-const MAX_MEMPOOL_SIZE = 2000;
+import MempoolTracker from '@/app/lib/MempoolTracker';
 
 enum ATTRIBUTES {
     LABEL = 'label',
@@ -17,9 +16,9 @@ enum ATTRIBUTES {
 
 class EthereumTracker {
     private static instance: EthereumTracker;
-    private mempool: Transaction[] = [];
     private nodes: Map<string, Attributes> = new Map();
     private topNodesTracker: TopNodesTracker = new TopNodesTracker();
+    private mempoolTracker: MempoolTracker = new MempoolTracker();
 
     public static getInstance(): EthereumTracker {
         if (!EthereumTracker.instance) {
@@ -30,15 +29,14 @@ class EthereumTracker {
     }
 
     public shiftMempool() {
-        const to_remove: Transaction | undefined = this.mempool.shift();
+        const to_remove = this.mempoolTracker.shift();
         if (to_remove) {
             this.updateNetBalanceFromTransaction(to_remove, true);
         }
     }
 
     public appendMempool(tx: Transaction) {
-        this.mempool.push(tx);
-        eventEmitter.emit(EventType.AddTransactionToGraph, tx);
+        this.mempoolTracker.append(tx);
         this.updateNetBalanceFromTransaction(tx);
     }
 
@@ -93,7 +91,7 @@ class EthereumTracker {
     }
 
     public async addPendingTransaction(tx: Transaction) {
-        if (this.mempool.length >= MAX_MEMPOOL_SIZE) {
+        if (this.mempoolTracker.isAtCapacity()) {
             this.shiftMempool();
         }
 
