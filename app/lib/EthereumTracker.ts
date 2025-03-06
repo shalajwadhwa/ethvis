@@ -6,7 +6,7 @@ import MempoolTracker from '@/app/lib/MempoolTracker';
 import NodesTracker from '@/app/lib/NodesTracker';
 import Sigma from "sigma";
 import { NodeType, EdgeType } from "@/app/types/graph";
-import GraphHandler from './GraphHandler';
+import GraphHandler from '@/app/lib/GraphHandler';
 
 class EthereumTracker {
     private static instance: EthereumTracker;
