@@ -1,5 +1,5 @@
 import eventEmitter from '@/app/lib/EventEmitter';
-import { EventType } from '@/app/types/event';
+import { EventType, MempoolUpdateEventType } from '@/app/types/event';
 import EthereumApiClient from "@/app/lib/EthereumApiClient";
 import { AddressInfo, AddressInfoResponse, Attributes } from '@/app/types/graph';
 import { Transaction } from '@/app/types/transaction';
@@ -19,6 +19,11 @@ class NodesTracker {
         eventEmitter.on(
             EventType.NewPendingTransaction,
             (tx) => this.addNodesFromTransaction(tx)
+        )
+
+        eventEmitter.on(
+            EventType.MempoolUpdate,
+            (tx, eventType) => this.updateNetBalanceFromTransaction(tx, eventType === MempoolUpdateEventType.Remove)
         )
     }
 
@@ -90,11 +95,18 @@ class NodesTracker {
         eventEmitter.emit(EventType.UpdateNodeNetBalance, address, value);
     }
 
-    public updateNetBalance(tx: Transaction, value: number, is_sender: boolean) {
+    private updateNetBalance(tx: Transaction, value: number, is_sender: boolean) {
         const node: string = is_sender ? tx.from : tx.to;
 
         const prev_balance: number = this.nodes.get(node)?.netBalance || 0;
         this.setNetBalance(node, prev_balance + value);
+    }
+
+    private updateNetBalanceFromTransaction(tx: Transaction, is_removed: boolean = false) {
+        const reverse_tx_multiplier = is_removed ? -1 : 1;
+
+        this.updateNetBalance(tx, -Number(tx.value) * reverse_tx_multiplier, true);
+        this.updateNetBalance(tx, Number(tx.value) * reverse_tx_multiplier, false);
     }
 
     private async addNodesFromTransaction(tx: Transaction) {

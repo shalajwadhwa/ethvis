@@ -1,6 +1,5 @@
 import eventEmitter from '@/app/lib/EventEmitter';
-import { Transaction } from '@/app/types/transaction';
-import { EventType, MempoolUpdateEventType } from '@/app/types/event';
+import { EventType } from '@/app/types/event';
 import TopNodesTracker from '@/app/lib/TopNodesTracker';
 import MempoolTracker from '@/app/lib/MempoolTracker';
 import NodesTracker from '@/app/lib/NodesTracker';
@@ -29,11 +28,6 @@ class EthereumTracker {
         eventEmitter.on(
             EventType.UpdateNodeNetBalance, (node) => this.updateTopNodes(node)
         );
-
-        eventEmitter.on(
-            EventType.MempoolUpdate,
-            (tx, eventType) => this.updateNetBalanceFromTransaction(tx, eventType === MempoolUpdateEventType.Remove)
-        )
     }
 
     public getNodeAttributes(node: string) {
@@ -51,13 +45,6 @@ class EthereumTracker {
         }
 
         this.topNodesTracker.updateTopNodes(nodeAttributes);
-    }
-
-    public updateNetBalanceFromTransaction(tx: Transaction, is_removed: boolean = false) {
-        const reverse_tx_multiplier = is_removed ? -1 : 1;
-
-        this.nodesTracker.updateNetBalance(tx, -Number(tx.value) * reverse_tx_multiplier, true);
-        this.nodesTracker.updateNetBalance(tx, Number(tx.value) * reverse_tx_multiplier, false);
     }
 }
 
