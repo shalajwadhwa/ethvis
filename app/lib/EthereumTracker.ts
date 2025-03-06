@@ -5,7 +5,7 @@ import EthereumApiClient from "@/app/lib/EthereumApiClient";
 import { AddressInfo, AddressInfoResponse, Attributes } from '@/app/types/graph';
 
 const MAX_MEMPOOL_SIZE = 2000;
-const TOP_NODES_SIZE = 10;
+const TOP_NODES_SIZE = 20;
 
 enum ATTRIBUTES {
     LABEL = 'label',
@@ -45,6 +45,10 @@ class EthereumTracker {
 
     public simplifyAttributes(address: string, response: AddressInfoResponse, isContract: boolean): Attributes {
         const result: Attributes = { address: address, isContract, netBalance: 0 };
+
+        if (!response) {
+            return result;
+        }
 
         for (const entry of response) {
             for (const attribute of Object.values(ATTRIBUTES)) {
@@ -143,6 +147,16 @@ class EthereumTracker {
     }
 
     public setNetBalance(node: string, value: number) {
+        if (!this.nodes.has(node)) {
+            // Create a new node if it doesn't exist
+            this.nodes.set(node, {
+                address: node,
+                netBalance: 0,
+                isContract: false
+            });
+        }
+        
+        // Now we can safely set the netBalance
         this.nodes.get(node)!.netBalance = value;
         this.updateTopNodes(node, value);
     }

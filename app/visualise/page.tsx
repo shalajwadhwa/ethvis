@@ -13,6 +13,12 @@ import { NodeType, EdgeType } from "@/app/types/graph";
 import NodeAttributes from "@/app/visualise/components/NodeAttributes";
 import Fa2Graph from "@/app/visualise/components/Fa2Graph";
 import SidePanel from "@/app/visualise/components/SidePanel";
+import { ModeToggle } from "@/app/components/theme-toggle";
+import {
+  ResizableHandle,
+  ResizablePanel,
+  ResizablePanelGroup,
+} from "@/components/ui/resizable";
 
 const VisualisePage = () => {
   const [sigma, setSigma] = useState<Sigma<NodeType, EdgeType> | null>(null);
@@ -42,16 +48,25 @@ const VisualisePage = () => {
   }, [sigma]);
 
   return (
-    <div className="dark-mode">
-      <SigmaContainer
-        ref={setSigma}
-        style={{ width: "100vw", height: "100vh" }}
-      >
-        <Fa2Graph setHoveredNode={setHoveredNode} />
-      </SigmaContainer>
-      <NodeAttributes hoveredNode={hoveredNode} ethereumTracker={ethereumTracker.current}/>
-      <SidePanel ethereumTracker={ethereumTracker.current}/>
-    </div>
+      <ResizablePanelGroup direction="horizontal">
+        <ResizablePanel defaultSize={80} className="relative">
+          <SigmaContainer ref={setSigma} className="w-full h-screen">
+            <Fa2Graph setHoveredNode={setHoveredNode} />
+          </SigmaContainer>
+
+          <NodeAttributes hoveredNode={hoveredNode} ethereumTracker={ethereumTracker.current}/>
+
+          <div className="absolute bottom-4 right-4 z-10">
+            <ModeToggle />
+          </div>
+        </ResizablePanel>
+
+        <ResizableHandle withHandle />
+
+        <ResizablePanel defaultSize={20}>
+          <SidePanel ethereumTracker={ethereumTracker.current} />
+        </ResizablePanel>
+      </ResizablePanelGroup>
   );
 };
 

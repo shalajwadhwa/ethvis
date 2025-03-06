@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { ForceAtlas2LayoutParameters } from "graphology-layout-forceatlas2";
 import { useWorkerLayoutForceAtlas2 } from "@react-sigma/layout-forceatlas2";
 import { useRegisterEvents } from "@react-sigma/core";
@@ -8,6 +8,8 @@ const Fa2Graph = ({
 }: {
   setHoveredNode: React.Dispatch<React.SetStateAction<string | null>>;
 }) => {
+  const [isNodeClicked, setIsNodeClicked] = useState(false);
+  
   const options: ForceAtlas2LayoutParameters = {
     settings: {
       linLogMode: false,
@@ -34,13 +36,25 @@ const Fa2Graph = ({
   useEffect(() => {
     registerEvents({
       enterNode: (event) => {
-        setHoveredNode(event.node);
+        if (!isNodeClicked) {
+          setHoveredNode(event.node);
+        }
       },
       leaveNode: () => {
+        if (!isNodeClicked) {
+          setHoveredNode(null);
+        }
+      },
+      clickNode: (event) => {
+        setIsNodeClicked(true);
+        setHoveredNode(event.node);
+      },
+      clickStage: () => {
+        setIsNodeClicked(false);
         setHoveredNode(null);
       },
     });
-  }, [registerEvents, setHoveredNode]);
+  }, [registerEvents, setHoveredNode, isNodeClicked]);
 
   return <div></div>;
 };

@@ -13,8 +13,8 @@ const NUM_COLOUR_BINS = 5;
 const MAX_TRANSACTION_VALUE = 4 * 1e18;
 const BIN_INTERVAL = MAX_TRANSACTION_VALUE / NUM_COLOUR_BINS;
 
-const negativeScale = new Values(NEGATIVE_COLOUR).all(NUM_COLOUR_BINS);
-const positiveScale = new Values(POSITIVE_COLOUR).all(NUM_COLOUR_BINS);
+const negativeScale = new Values(NEGATIVE_COLOUR).shades(NUM_COLOUR_BINS);
+const positiveScale = new Values(POSITIVE_COLOUR).shades(NUM_COLOUR_BINS);
 
 
 class GraphHandler {
