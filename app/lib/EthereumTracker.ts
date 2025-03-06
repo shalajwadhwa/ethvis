@@ -4,6 +4,9 @@ import { EventType } from '@/app/types/event';
 import TopNodesTracker from '@/app/lib/TopNodesTracker';
 import MempoolTracker from '@/app/lib/MempoolTracker';
 import NodesTracker from '@/app/lib/NodesTracker';
+import Sigma from "sigma";
+import { NodeType, EdgeType } from "@/app/types/graph";
+import GraphHandler from './GraphHandler';
 
 class EthereumTracker {
     private static instance: EthereumTracker;
@@ -17,6 +20,23 @@ class EthereumTracker {
         }
 
         return EthereumTracker.instance;
+    }
+
+    public setSigma(sigma: Sigma<NodeType, EdgeType>) { 
+        eventEmitter.on(EventType.NewPendingTransaction, (tx) =>
+            this.addPendingTransaction(tx)
+          );
+        eventEmitter.on(EventType.AddAddressToGraph, (address, isContract) =>
+            GraphHandler.addNode(sigma, address, isContract)
+        );
+        eventEmitter.on(EventType.AddTransactionToGraph, (tx) =>
+            GraphHandler.addTransaction(sigma, tx)
+        );
+        eventEmitter.on(
+            EventType.UpdateNodeNetBalance,
+        (tx, netBalance, is_sender) =>
+            GraphHandler.updateNodeColour(sigma, tx, netBalance, is_sender)
+        );
     }
 
     public shiftMempool() {
