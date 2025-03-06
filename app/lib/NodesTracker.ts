@@ -2,6 +2,7 @@ import eventEmitter from '@/app/lib/EventEmitter';
 import { EventType } from '@/app/types/event';
 import EthereumApiClient from "@/app/lib/EthereumApiClient";
 import { AddressInfo, AddressInfoResponse, Attributes } from '@/app/types/graph';
+import { Transaction } from '@/app/types/transaction';
 
 enum ATTRIBUTES {
     LABEL = 'label',
@@ -26,7 +27,7 @@ class NodesTracker {
         return this.nodes.has(address);
     }
 
-    public simplifyAttributes(address: string, response: AddressInfoResponse, isContract: boolean): Attributes {
+    private simplifyAttributes(address: string, response: AddressInfoResponse, isContract: boolean): Attributes {
         const result: Attributes = { address: address, isContract, netBalance: 0 };
 
         if (!response) {
@@ -50,7 +51,7 @@ class NodesTracker {
         return result;
     }
 
-    public async fetchAttributesAndSaveNode(address: string, isTo=false): Promise<void> {
+    private async fetchAttributesAndSaveNode(address: string, isTo=false): Promise<void> {
         const nodeAttributes: AddressInfoResponse = await EthereumApiClient.getInstance().getInfo(address);
 
         let isContract = false;
@@ -65,7 +66,7 @@ class NodesTracker {
         this.nodes.set(address, attributes);
     }
 
-    public async addNewAddress(address: string, isTo=false): Promise<void> {
+    private async addNewAddress(address: string, isTo=false): Promise<void> {
         await this.fetchAttributesAndSaveNode(address, isTo);
         const isContract = this.nodes.get(address)?.isContract || false;
 
@@ -88,6 +89,15 @@ class NodesTracker {
         
         this.nodes.get(address)!.netBalance = value;
     }
+
+    public async addNodesFromTransaction(tx: Transaction) {
+            if (!this.hasNode(tx.from)) {
+                await this.addNewAddress(tx.from);
+            }
+            if (!this.hasNode(tx.to)) {
+                await this.addNewAddress(tx.to, true);
+            }
+        }
 }
 
 export default NodesTracker;

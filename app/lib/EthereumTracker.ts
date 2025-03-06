@@ -35,21 +35,12 @@ class EthereumTracker {
         return this.nodesTracker.getNodes();
     }
 
-    public async addNewAddress(address: string, isTo=false) {
-        await this.nodesTracker.addNewAddress(address, isTo);
-    }
-
     public async addPendingTransaction(tx: Transaction) {
         if (this.mempoolTracker.isAtCapacity()) {
             this.shiftMempool();
         }
 
-        if (!this.nodesTracker.hasNode(tx.from)) {
-            await this.addNewAddress(tx.from);
-        }
-        if (!this.nodesTracker.hasNode(tx.to)) {
-            await this.addNewAddress(tx.to, true);
-        }
+        await this.nodesTracker.addNodesFromTransaction(tx);
 
         this.appendMempool(tx);
     }
