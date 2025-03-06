@@ -23,10 +23,6 @@ class NodesTracker {
         return this.nodes.get(address);
     }
 
-    public hasNode(address: string): boolean {
-        return this.nodes.has(address);
-    }
-
     private simplifyAttributes(address: string, response: AddressInfoResponse, isContract: boolean): Attributes {
         const result: Attributes = { address: address, isContract, netBalance: 0 };
 
@@ -99,10 +95,10 @@ class NodesTracker {
     }
 
     public async addNodesFromTransaction(tx: Transaction) {
-            if (!this.hasNode(tx.from)) {
+            if (!this.nodes.has(tx.from)) {
                 await this.addNewAddress(tx.from);
             }
-            if (!this.hasNode(tx.to)) {
+            if (!this.nodes.has(tx.to)) {
                 await this.addNewAddress(tx.to, true);
             }
         }

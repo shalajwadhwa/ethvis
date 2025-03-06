@@ -48,10 +48,6 @@ class EthereumTracker {
         this.updateNetBalanceFromTransaction(tx);
     }
 
-    public getNodes() {
-        return this.nodesTracker.getNodes();
-    }
-
     public async addPendingTransaction(tx: Transaction) {
         if (this.mempoolTracker.isAtCapacity()) {
             this.shiftMempool();
@@ -62,8 +58,8 @@ class EthereumTracker {
         this.appendMempool(tx);
     }
 
-    public getNetBalance(node: string) {
-        return this.nodesTracker.getNetBalance(node);
+    public getNodeAttributes(node: string) {
+        return this.nodesTracker.getNode(node);
     }
 
     public getTopNodes() {
