@@ -1,22 +1,13 @@
 import eventEmitter from '@/app/lib/EventEmitter';
 import { Transaction } from '@/app/types/transaction';
 import { EventType } from '@/app/types/event';
-import EthereumApiClient from "@/app/lib/EthereumApiClient";
-import { AddressInfo, AddressInfoResponse, Attributes } from '@/app/types/graph';
 import TopNodesTracker from '@/app/lib/TopNodesTracker';
 import MempoolTracker from '@/app/lib/MempoolTracker';
-
-enum ATTRIBUTES {
-    LABEL = 'label',
-    NAME = 'name',
-    WEBSITE = 'website',
-    NAMETAG = 'nameTag',
-    SYMBOL = 'symbol',
-}
+import NodesTracker from '@/app/lib/NodesTracker';
 
 class EthereumTracker {
     private static instance: EthereumTracker;
-    private nodes: Map<string, Attributes> = new Map();
+    private nodesTracker: NodesTracker = new NodesTracker();
     private topNodesTracker: TopNodesTracker = new TopNodesTracker();
     private mempoolTracker: MempoolTracker = new MempoolTracker();
 
@@ -40,54 +31,12 @@ class EthereumTracker {
         this.updateNetBalanceFromTransaction(tx);
     }
 
-    public simplifyAttributes(address: string, response: AddressInfoResponse, isContract: boolean): Attributes {
-        const result: Attributes = { address: address, isContract, netBalance: 0 };
-
-        if (!response) {
-            return result;
-        }
-
-        for (const entry of response) {
-            for (const attribute of Object.values(ATTRIBUTES)) {
-                const value = entry[attribute as keyof AddressInfo];
-                if (value) {
-                    if (!result[attribute]) {
-                        result[attribute] = new Set();
-                    }
-                    if (typeof value === 'string') {
-                        result[attribute].add(value);
-                    }
-                }
-            }
-        }
-
-        return result;
-    }
-
-    public async fetchAttributesAndSaveNode(address: string, isTo=false) {
-        const nodeAttributes: AddressInfoResponse = await EthereumApiClient.getInstance().getInfo(address);
-
-        let isContract = false;
-        if (isTo) {
-            const contract = await EthereumApiClient.getInstance().isCode(address);
-            if (contract !== '0x') {
-                isContract = true; 
-            }
-        }
-
-        const attributes = this.simplifyAttributes(address, nodeAttributes, isContract);
-        this.nodes.set(address, attributes);
-    }
-
     public getNodes() {
-        return this.nodes;
+        return this.nodesTracker.getNodes();
     }
 
     public async addNewAddress(address: string, isTo=false) {
-        await this.fetchAttributesAndSaveNode(address, isTo);
-        const isContract = this.nodes.get(address)?.isContract || false;
-
-        eventEmitter.emit(EventType.AddAddressToGraph, address, isContract);
+        await this.nodesTracker.addNewAddress(address, isTo);
     }
 
     public async addPendingTransaction(tx: Transaction) {
@@ -95,10 +44,10 @@ class EthereumTracker {
             this.shiftMempool();
         }
 
-        if (!this.nodes.get(tx.from)) {
+        if (!this.nodesTracker.hasNode(tx.from)) {
             await this.addNewAddress(tx.from);
         }
-        if (!this.nodes.get(tx.to)) {
+        if (!this.nodesTracker.hasNode(tx.to)) {
             await this.addNewAddress(tx.to, true);
         }
 
@@ -106,7 +55,7 @@ class EthereumTracker {
     }
 
     public getNetBalance(node: string) {
-        return this.nodes.get(node)?.netBalance || 0;
+        return this.nodesTracker.getNetBalance(node);
     }
 
     public getTopNodes() {
@@ -114,25 +63,16 @@ class EthereumTracker {
     }
 
     public updateTopNodes(node: string) {
-        if (!this.nodes.get(node)) {
+        const nodeAttributes = this.nodesTracker.getNode(node);
+        if (!nodeAttributes) {
             return;
         }
 
-        this.topNodesTracker.updateTopNodes(this.nodes.get(node)!);
+        this.topNodesTracker.updateTopNodes(nodeAttributes);
     }
 
     public setNetBalance(node: string, value: number) {
-        if (!this.nodes.has(node)) {
-            // Create a new node if it doesn't exist
-            this.nodes.set(node, {
-                address: node,
-                netBalance: 0,
-                isContract: false
-            });
-        }
-        
-        // Now we can safely set the netBalance
-        this.nodes.get(node)!.netBalance = value;
+        this.nodesTracker.setNetBalance(node, value);
         this.updateTopNodes(node);
     }
 
