@@ -21,17 +21,18 @@ const positiveScale = new Values(POSITIVE_COLOUR).shades(NUM_COLOUR_BINS);
 
 class GraphHandler {
   public constructor(sigma: Sigma<NodeType, EdgeType>) {
-    eventEmitter.on(EventType.AddAddressToGraph, (address, isContract) =>
-      GraphHandler.addNode(sigma, address, isContract)
-  );
-  eventEmitter.on(EventType.AddTransactionToGraph, (tx) =>
-      GraphHandler.addTransaction(sigma, tx)
-  );
-  eventEmitter.on(
+    eventEmitter.on(
+      EventType.AddAddressToGraph,
+      (address, isContract) => GraphHandler.addNode(sigma, address, isContract)
+    );
+    eventEmitter.on(
+      EventType.AddTransactionToGraph,
+      (tx) => GraphHandler.addTransaction(sigma, tx)
+    );
+    eventEmitter.on(
       EventType.UpdateNodeNetBalance,
-  (tx, netBalance, is_sender) =>
-      GraphHandler.updateNodeColour(sigma, tx, netBalance, is_sender)
-  );
+      (tx, netBalance, is_sender) => GraphHandler.updateNodeColour(sigma, tx, netBalance, is_sender)
+    );
   }
 
   public static addNode(sigma: Sigma<NodeType, EdgeType>, node: string, isContract: boolean): void {
