@@ -16,6 +16,7 @@ import {
   ResizablePanel,
   ResizablePanelGroup,
 } from "@/components/ui/resizable";
+import GraphInfo from "./components/GraphInfo";
 
 const VisualisePage = () => {
   const [sigma, setSigma] = useState<Sigma<NodeType, EdgeType> | null>(null);
@@ -39,6 +40,12 @@ const VisualisePage = () => {
           </SigmaContainer>
 
           <NodeAttributes hoveredNode={hoveredNode} ethereumTracker={ethereumTracker.current}/>
+
+          {sigma && (
+            <div className="absolute bottom-4 left-4 z-10">
+              <GraphInfo sigma={sigma} />
+            </div>
+          )}
 
           <div className="absolute bottom-4 right-4 z-10">
             <ModeToggle />
