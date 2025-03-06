@@ -77,7 +77,7 @@ class NodesTracker {
         return this.nodes.get(address)?.netBalance || 0;
     }
 
-    public setNetBalance(address: string, value: number): void {
+    private setNetBalance(address: string, value: number): void {
         if (!this.nodes.has(address)) {
             // Create a new node if it doesn't exist
             this.nodes.set(address, {
@@ -88,6 +88,14 @@ class NodesTracker {
         }
         
         this.nodes.get(address)!.netBalance = value;
+        eventEmitter.emit(EventType.UpdateNodeNetBalance, address, value);
+    }
+
+    public updateNetBalance(tx: Transaction, value: number, is_sender: boolean) {
+        const node: string = is_sender ? tx.from : tx.to;
+
+        const prev_balance: number = this.getNetBalance(node);
+        this.setNetBalance(node, prev_balance + value);
     }
 
     public async addNodesFromTransaction(tx: Transaction) {

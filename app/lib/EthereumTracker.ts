@@ -24,11 +24,16 @@ class EthereumTracker {
     }
 
     public setSigma(sigma: Sigma<NodeType, EdgeType>) { 
-        eventEmitter.on(EventType.NewPendingTransaction, (tx) =>
-            this.addPendingTransaction(tx)
-          );
+        eventEmitter.on(
+            EventType.NewPendingTransaction, 
+            (tx) => this.addPendingTransaction(tx)
+        );
 
         this.graphHandler = new GraphHandler(sigma);
+
+        eventEmitter.on(
+            EventType.UpdateNodeNetBalance, (node) => this.updateTopNodes(node)
+        );
     }
 
     public shiftMempool() {
@@ -74,24 +79,11 @@ class EthereumTracker {
         this.topNodesTracker.updateTopNodes(nodeAttributes);
     }
 
-    public setNetBalance(node: string, value: number) {
-        this.nodesTracker.setNetBalance(node, value);
-        this.updateTopNodes(node);
-    }
-
-    public updateNetBalance(tx: Transaction, value: number, is_sender: boolean) {
-        const node = is_sender ? tx.from : tx.to;
-
-        const prev_balance = this.getNetBalance(node);
-        this.setNetBalance(node, prev_balance + value);
-        eventEmitter.emit(EventType.UpdateNodeNetBalance, tx, value, is_sender);
-    }
-
     public updateNetBalanceFromTransaction(tx: Transaction, is_removed: boolean = false) {
         const reverse_tx_multiplier = is_removed ? -1 : 1;
 
-        this.updateNetBalance(tx, -Number(tx.value) * reverse_tx_multiplier, true);
-        this.updateNetBalance(tx, Number(tx.value) * reverse_tx_multiplier, false);
+        this.nodesTracker.updateNetBalance(tx, -Number(tx.value) * reverse_tx_multiplier, true);
+        this.nodesTracker.updateNetBalance(tx, Number(tx.value) * reverse_tx_multiplier, false);
     }
 }
 

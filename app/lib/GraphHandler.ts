@@ -31,7 +31,7 @@ class GraphHandler {
     );
     eventEmitter.on(
       EventType.UpdateNodeNetBalance,
-      (tx, netBalance, is_sender) => GraphHandler.updateNodeColour(sigma, tx, netBalance, is_sender)
+      (node, netBalance) => GraphHandler.updateNodeColour(sigma, node, netBalance)
     );
   }
 
@@ -62,7 +62,7 @@ class GraphHandler {
     this.addEdge(sigma, tx.from, tx.to);
   }
 
-  public static setNodeColour(sigma: Sigma<NodeType, EdgeType>, node: string, colour: string): void {
+  private static setNodeColour(sigma: Sigma<NodeType, EdgeType>, node: string, colour: string): void {
     const graph: Graph = sigma.getGraph();
     if (!graph) {
       return;
@@ -73,8 +73,7 @@ class GraphHandler {
     }
   }
 
-  public static updateNodeColour(sigma: Sigma<NodeType, EdgeType>, tx: Transaction, netBalance: number, is_sender: boolean): void {
-    const node = is_sender ? tx.from : tx.to;
+  public static updateNodeColour(sigma: Sigma<NodeType, EdgeType>, node: string, netBalance: number): void {
     const isContract = sigma.getGraph().getNodeAttribute(node, 'isContract');
     if (isContract) {
       return;
