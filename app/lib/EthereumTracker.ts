@@ -3,9 +3,9 @@ import { Transaction } from '@/app/types/transaction';
 import { EventType } from '@/app/types/event';
 import EthereumApiClient from "@/app/lib/EthereumApiClient";
 import { AddressInfo, AddressInfoResponse, Attributes } from '@/app/types/graph';
+import TopNodesTracker from '@/app/lib/TopNodesTracker';
 
 const MAX_MEMPOOL_SIZE = 2000;
-const TOP_NODES_SIZE = 20;
 
 enum ATTRIBUTES {
     LABEL = 'label',
@@ -19,8 +19,7 @@ class EthereumTracker {
     private static instance: EthereumTracker;
     private mempool: Transaction[] = [];
     private nodes: Map<string, Attributes> = new Map();
-    private topNodes: Attributes[] = [];
-    private topNodeThreshold: number = 0;
+    private topNodesTracker: TopNodesTracker = new TopNodesTracker();
 
     public static getInstance(): EthereumTracker {
         if (!EthereumTracker.instance) {
@@ -113,37 +112,15 @@ class EthereumTracker {
     }
 
     public getTopNodes() {
-        return this.topNodes;
+        return this.topNodesTracker.getTopNodes();
     }
 
-    private appendTopNodes(node: string) {
-        if (this.topNodes.some(topNode => topNode.address === node)) {
-            return;
-        }
-
-        if (this.topNodes.length >= TOP_NODES_SIZE) {
-            this.topNodes.pop();
-        }
-
-        this.topNodes.push(this.nodes.get(node)!);
-    }
-
-    private sortTopNodes() {
-        this.topNodes.sort((a, b) => b.netBalance! - a.netBalance!);
-        const length = this.topNodes.length;
-        this.topNodeThreshold = this.topNodes[length - 1].netBalance!;
-    }
-
-    public updateTopNodes(node: string, value: number) {
+    public updateTopNodes(node: string) {
         if (!this.nodes.get(node)) {
             return;
         }
 
-        if (value >= this.topNodeThreshold || this.topNodes.length < TOP_NODES_SIZE) {
-            this.appendTopNodes(node);
-            this.sortTopNodes();
-            eventEmitter.emit(EventType.NewTopNode, this.topNodes);
-        }
+        this.topNodesTracker.updateTopNodes(this.nodes.get(node)!);
     }
 
     public setNetBalance(node: string, value: number) {
@@ -158,7 +135,7 @@ class EthereumTracker {
         
         // Now we can safely set the netBalance
         this.nodes.get(node)!.netBalance = value;
-        this.updateTopNodes(node, value);
+        this.updateTopNodes(node);
     }
 
     public updateNetBalance(tx: Transaction, value: number, is_sender: boolean) {
