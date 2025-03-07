@@ -18,15 +18,7 @@ import {
 } from "@/components/ui/resizable";
 import GraphInfo from "./components/GraphInfo";
 import { NodeSquareProgram } from "@sigma/node-square";
-import {
-  Select,
-  SelectContent,
-  SelectGroup,
-  SelectItem,
-  SelectLabel,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select"
+import VisualisationSelector from "@/app/visualise/components/VisualisationSelector";
 
 const VisualisePage = () => {
   const [sigma, setSigma] = useState<Sigma<NodeType, EdgeType> | null>(null);
@@ -60,24 +52,9 @@ const VisualisePage = () => {
 
           <NodeAttributes hoveredNode={hoveredNode} ethereumTracker={ethereumTracker.current}/>
 
-          <div className="absolute top-4 right-4 z-10 graph-overlay">
-            <Select onValueChange={(value) => setVisualisationType(value)}>
-              <SelectTrigger className="w">
-                <SelectValue placeholder="Settings" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectGroup>
-                  <SelectLabel>Settings</SelectLabel>
-                  <SelectItem value="default">Real-time (default)</SelectItem>
-                  <SelectItem value="validation">Real-time with Validation</SelectItem>
-                  <SelectItem value="validation">Static</SelectItem>
-                </SelectGroup>
-              </SelectContent>
-            </Select>
-          </div>
+          <VisualisationSelector setVisualisationType={setVisualisationType} />
 
           {sigma && <GraphInfo sigma={sigma} />}
-
           
           <ModeToggle />
         </ResizablePanel>
