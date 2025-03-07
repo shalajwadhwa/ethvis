@@ -17,6 +17,7 @@ import {
   ResizablePanelGroup,
 } from "@/components/ui/resizable";
 import GraphInfo from "./components/GraphInfo";
+import { NodeSquareProgram } from "@sigma/node-square";
 
 const VisualisePage = () => {
   const [sigma, setSigma] = useState<Sigma<NodeType, EdgeType> | null>(null);
@@ -24,10 +25,16 @@ const VisualisePage = () => {
   const ethereumTracker = useRef(EthereumTracker.getInstance());
   const [hoveredNode, setHoveredNode] = useState<string | null>(null);
 
+  const sigmaSettings = {
+    nodeProgramClasses: {
+      square: NodeSquareProgram,
+    },
+    labelRenderedSizeThreshold: 100000
+  };
+
   useEffect(() => {
     if (sigma) {
       client.current.subscribeToPendingTransactions();
-      sigma.setSetting("labelRenderedSizeThreshold", 100000);
       ethereumTracker.current.setSigma(sigma);
     }
   }, [sigma]);
@@ -35,7 +42,7 @@ const VisualisePage = () => {
   return (
       <ResizablePanelGroup direction="horizontal">
         <ResizablePanel defaultSize={80} className="relative">
-          <SigmaContainer ref={setSigma} className="w-full h-screen">
+          <SigmaContainer ref={setSigma} settings={sigmaSettings} className="w-full h-screen">
             <Fa2Graph setHoveredNode={setHoveredNode} />
           </SigmaContainer>
 

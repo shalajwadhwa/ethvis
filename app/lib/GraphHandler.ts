@@ -6,6 +6,9 @@ import Values from 'values.js';
 import { EventType } from '@/app/types/event';
 import eventEmitter from '@/app/lib/EventEmitter';
 
+const DEFAULT_SHAPE = "circle";
+const CONTRACT_SHAPE = "square";
+
 const DEFAULT_COLOUR = 'grey';
 const CONTRACT_COLOUR = 'blue';
 const NEGATIVE_COLOUR = 'red';
@@ -46,8 +49,9 @@ class GraphHandler {
     }
 
     const colour = isContract ? CONTRACT_COLOUR : DEFAULT_COLOUR;
+    const shape = isContract ? CONTRACT_SHAPE : DEFAULT_SHAPE;
     if (!graph.hasNode(node)) {
-      graph.addNode(node, { label: node, x: Math.random(), y: Math.random(), size: 4, color: colour, isContract: isContract });
+      graph.addNode(node, { label: node, x: Math.random(), y: Math.random(), size: 4, color: colour, isContract: isContract, type: shape });
     }
   }
 
