@@ -9,3 +9,7 @@
 .sigma-edge {
   stroke: hsl(var(--muted-foreground));
 }
+
+.graph-overlay {
+  @apply text-white border-gray-700 bg-black/70;
+}

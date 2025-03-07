@@ -60,7 +60,7 @@ const VisualisePage = () => {
 
           <NodeAttributes hoveredNode={hoveredNode} ethereumTracker={ethereumTracker.current}/>
 
-          <div className="absolute top-4 right-4 z-10">
+          <div className="absolute top-4 right-4 z-10 graph-overlay">
             <Select onValueChange={(value) => setVisualisationType(value)}>
               <SelectTrigger className="w">
                 <SelectValue placeholder="Settings" />
@@ -76,11 +76,7 @@ const VisualisePage = () => {
             </Select>
           </div>
 
-          {sigma && (
-            <div className="absolute bottom-4 left-4 z-10">
-              <GraphInfo sigma={sigma} />
-            </div>
-          )}
+          {sigma && <GraphInfo sigma={sigma} />}
 
           <div className="absolute bottom-4 right-4 z-10">
             <ModeToggle />

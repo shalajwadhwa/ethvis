@@ -21,7 +21,7 @@ const NodeAttributes = ({
   const attributes = ethereumTracker.getNodeAttributes(hoveredNode);
 
   return (
-    <Card className="absolute top-4 left-4 z-10 text-white border-gray-700 bg-black/70">
+    <Card className="absolute top-4 left-4 z-10 graph-overlay">
       <CardHeader className="pb-1">
         <CardTitle className="text-md">Node Details</CardTitle>
       </CardHeader>

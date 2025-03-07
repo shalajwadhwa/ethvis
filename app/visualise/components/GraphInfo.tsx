@@ -22,11 +22,13 @@ const GraphInfo = ({ sigma }: { sigma: Sigma<NodeType, EdgeType> }) => {
     }
     , [sigma]);
   return (
-    <div className="p-2.5 border rounded-md row-auto">
-      <div className="flex h-5 items-center space-x-4 text-sm">
-        <div>Nodes: {nodes}</div>
-        <Separator orientation="vertical" />
-        <div>Edges: {edges}</div>
+    <div className="absolute bottom-4 left-4 z-10 graph-overlay">
+      <div className="p-2.5 border rounded-md row-auto">
+        <div className="flex h-5 items-center space-x-4 text-sm">
+          <div>Nodes: {nodes}</div>
+          <Separator orientation="vertical" />
+          <div>Edges: {edges}</div>
+        </div>
       </div>
     </div>
   );
