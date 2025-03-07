@@ -44,6 +44,10 @@ class GraphHandler {
       EventType.UpdateNodeNetBalance,
       (node, netBalance) => GraphHandler.updateNodeColour(sigma, node, netBalance)
     );
+    eventEmitter.on(
+      EventType.NewMinedTransaction,
+      (tx) => GraphHandler.colourMinedTransaction(sigma, tx)
+    )
   }
 
   public resetHandler(): void {
@@ -102,6 +106,9 @@ class GraphHandler {
 
     if (graph.hasNode(node)) {
       graph.setNodeAttribute(node, 'color', colour);
+      if (colour === "purple") {
+        console.log('Setting node colour to purple:', node);
+      }
     }
   }
 
@@ -130,6 +137,12 @@ class GraphHandler {
     else {
       return;
     }
+  }
+
+  private static colourMinedTransaction(sigma: Sigma<NodeType, EdgeType>, tx: Transaction): void {
+    console.log('Mined transaction:', tx);
+    this.setNodeColour(sigma, tx.from, "purple");
+    this.setNodeColour(sigma, tx.to, "purple");
   }
 }
 

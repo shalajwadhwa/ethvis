@@ -44,8 +44,26 @@ class EthereumApiClient {
     }
 
     public unsubscribeFromPendingTransactions() {
-        this.alchemy.ws.off({});
+        this.alchemy.ws.off({ method: AlchemySubscription.PENDING_TRANSACTIONS });
         console.log('Unsubscribed from pending transactions');
+    }
+
+    public subscribeToMinedTransactions() {
+        console.log('Attempting to subscribe to mined transactions...');
+        this.alchemy.ws.on(
+            {
+                method: AlchemySubscription.MINED_TRANSACTIONS
+            },
+            (transaction) => {
+                eventEmitter.emit(EventType.NewMinedTransaction, transaction as Transaction);
+            }
+        );
+        console.log('Subscribed to mined transactions');
+    }
+
+    public unsubscribeFromMinedTransactions() {
+        this.alchemy.ws.off({ method: AlchemySubscription.MINED_TRANSACTIONS });
+        console.log('Unsubscribed from mined transactions');
     }
 
     public isCode(address: string): Promise<string> {

@@ -51,6 +51,7 @@ export enum MempoolUpdateEventType {
 
 export enum EventType {
     NewPendingTransaction = 'newPendingTransactions',
+    NewMinedTransaction = 'newMinedTransaction',
     AddTransactionToMempool = 'addTransactionToMempool',
     MempoolUpdate = 'mempoolUpdate',
     AddAddressToGraph = 'addAddressToGraph',

@@ -45,6 +45,7 @@ const VisualisePage = () => {
   useEffect(() => {
     if (sigma) {
       client.current.subscribeToPendingTransactions();
+      client.current.subscribeToMinedTransactions();
       ethereumTracker.current.setSigma(sigma);
       ethereumTracker.current.changeVisualisation(visualisationType);
     }
