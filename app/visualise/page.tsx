@@ -78,9 +78,8 @@ const VisualisePage = () => {
 
           {sigma && <GraphInfo sigma={sigma} />}
 
-          <div className="absolute bottom-4 right-4 z-10">
-            <ModeToggle />
-          </div>
+          
+          <ModeToggle />
         </ResizablePanel>
 
         <ResizableHandle withHandle />
