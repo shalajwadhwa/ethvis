@@ -35,6 +35,10 @@ class NodesTracker {
         return this.nodes.get(address);
     }
 
+    public resetTracker(): void {
+        this.nodes.clear();
+    }
+
     private simplifyAttributes(address: string, response: AddressInfoResponse, isContract: boolean): Attributes {
         const result: Attributes = { address: address, isContract, netBalance: 0, numTransactions: 0 };
 

@@ -18,12 +18,22 @@ import {
 } from "@/components/ui/resizable";
 import GraphInfo from "./components/GraphInfo";
 import { NodeSquareProgram } from "@sigma/node-square";
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectLabel,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 
 const VisualisePage = () => {
   const [sigma, setSigma] = useState<Sigma<NodeType, EdgeType> | null>(null);
   const client = useRef(EthereumApiClient.getInstance());
   const ethereumTracker = useRef(EthereumTracker.getInstance());
   const [hoveredNode, setHoveredNode] = useState<string | null>(null);
+  const [visualisationType, setVisualisationType] = useState<string>("default");
 
   const sigmaSettings = {
     nodeProgramClasses: {
@@ -36,8 +46,9 @@ const VisualisePage = () => {
     if (sigma) {
       client.current.subscribeToPendingTransactions();
       ethereumTracker.current.setSigma(sigma);
+      ethereumTracker.current.changeVisualisation(visualisationType);
     }
-  }, [sigma]);
+  }, [sigma, visualisationType]);
 
   return (
       <ResizablePanelGroup direction="horizontal">
@@ -47,6 +58,21 @@ const VisualisePage = () => {
           </SigmaContainer>
 
           <NodeAttributes hoveredNode={hoveredNode} ethereumTracker={ethereumTracker.current}/>
+
+          <div className="absolute top-4 right-4 z-10">
+            <Select onValueChange={(value) => setVisualisationType(value)}>
+              <SelectTrigger className="w">
+                <SelectValue placeholder="Settings" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectGroup>
+                  <SelectLabel>Settings</SelectLabel>
+                  <SelectItem value="default">Real-time (default)</SelectItem>
+                  <SelectItem value="validation">Real-time with Validation</SelectItem>
+                </SelectGroup>
+              </SelectContent>
+            </Select>
+          </div>
 
           {sigma && (
             <div className="absolute bottom-4 left-4 z-10">

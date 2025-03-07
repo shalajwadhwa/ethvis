@@ -14,6 +14,10 @@ class MempoolTracker {
     );
   }
 
+  public resetTracker(): void {
+    this.mempool = [];
+  }
+
   private append(tx: Transaction) {
     this.mempool.push(tx);
     eventEmitter.emit(EventType.MempoolUpdate, tx, MempoolUpdateEventType.Add);

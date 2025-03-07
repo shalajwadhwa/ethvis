@@ -12,6 +12,11 @@ class TopNodesTracker {
         return this.topNodes;
     }
 
+    public resetTracker(): void {
+        this.topNodes = [];
+        this.topNodeThreshold = 0;
+    }
+
     private appendTopNodes(nodeAttributes: Attributes): void {
         if (this.topNodes.some(topNode => topNode.address === nodeAttributes.address)) {
             return;

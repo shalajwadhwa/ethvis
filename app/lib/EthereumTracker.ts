@@ -13,6 +13,7 @@ class EthereumTracker {
     private topNodesTracker: TopNodesTracker = new TopNodesTracker();
     private mempoolTracker: MempoolTracker = new MempoolTracker();
     private graphHandler: GraphHandler | null = null;
+    private visualisationType: string = 'default';
 
     public static getInstance(): EthereumTracker {
         if (!EthereumTracker.instance) {
@@ -28,6 +29,16 @@ class EthereumTracker {
         eventEmitter.on(
             EventType.UpdateNodeNetBalance, (node) => this.updateTopNodes(node)
         );
+    }
+
+    public changeVisualisation(type: string) {
+        if (type !== this.visualisationType) {
+            this.nodesTracker.resetTracker();
+            this.topNodesTracker.resetTracker();
+            this.mempoolTracker.resetTracker();
+            this.graphHandler?.resetHandler();
+            this.visualisationType = type;
+        }
     }
 
     public getNodeAttributes(node: string) {
