@@ -1,5 +1,11 @@
 import React from "react";
 import EthereumTracker from "@/app/lib/EthereumTracker";
+import {
+  Card,
+  CardHeader,
+  CardTitle,
+  CardContent,
+} from "@/components/ui/card";
 
 const NodeAttributes = ({
   hoveredNode,
@@ -15,27 +21,29 @@ const NodeAttributes = ({
   const attributes = ethereumTracker.getNodeAttributes(hoveredNode);
 
   return (
-    <div
-      style={{
-        position: "absolute",
-        top: "10px",
-        left: "10px",
-        padding: "8px",
-        background: "rgba(0,0,0,0.7)",
-        color: "white",
-        borderRadius: "5px",
-      }}
-    >
-      {attributes && (
-        <ul>
-          {Object.entries(attributes).map(([key, value]) => (
-            <li key={key}>
-              {key}: {key === 'isContract' ? value.toString() : key === 'netBalance' ? (Number(value) / 10**18).toString() : value}
-            </li>
-          ))}
-        </ul>
-      )}
-    </div>
+    <Card className="absolute top-4 left-4 z-10 text-white border-gray-700 bg-black/70">
+      <CardHeader className="pb-1">
+        <CardTitle className="text-md">Node Details</CardTitle>
+      </CardHeader>
+      <CardContent>
+        {attributes && (
+          <ul className="space-y-0">
+            {Object.entries(attributes).map(([key, value]) => (
+              <li key={key} className="flex justify-between">
+                <span className="font-small">{key}:</span>
+                <span>
+                  {key === 'isContract'
+                    ? value.toString()
+                    : key === 'netBalance'
+                    ? `${(Number(value) / 10**18).toFixed(4)} ETH`
+                    : value}
+                </span>
+              </li>
+            ))}
+          </ul>
+        )}
+      </CardContent>
+    </Card>
   );
 };
 
