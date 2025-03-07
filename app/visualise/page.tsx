@@ -70,6 +70,7 @@ const VisualisePage = () => {
                   <SelectLabel>Settings</SelectLabel>
                   <SelectItem value="default">Real-time (default)</SelectItem>
                   <SelectItem value="validation">Real-time with Validation</SelectItem>
+                  <SelectItem value="validation">Static</SelectItem>
                 </SelectGroup>
               </SelectContent>
             </Select>
