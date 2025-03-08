@@ -27,13 +27,13 @@ class MempoolTracker {
 
   private async append(tx: Transaction) {
     this.mempool.push(tx);
-    await this.nodes.updateNodesFromTransaction(tx);
+    await this.nodes.mempoolUpdate(tx);
     eventEmitter.emit(EventType.AddTransactionToGraph, tx);
 
     if (this.mempool.length >= MAX_MEMPOOL_SIZE) {
       const to_remove = this.mempool.shift();
       if (to_remove) {
-          await this.nodes.updateNodesFromTransaction(to_remove, true);
+          await this.nodes.mempoolUpdate(to_remove, true);
           eventEmitter.emit(EventType.RemoveTransactionFromGraph, to_remove);
       }
     }

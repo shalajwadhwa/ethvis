@@ -73,32 +73,31 @@ class NodesTracker {
         eventEmitter.emit(EventType.AddAddressToGraph, address, isContract);
     }
 
-    private updateNode(tx: Transaction, value: number, is_sender: boolean, is_removed: boolean): void {
-        const address: string = is_sender ? tx.from : tx.to;
-        const node = this.nodes.get(address);
+    private updateNode(node: string, value: number, remove: boolean): void {
+        const attributes: Attributes | undefined = this.nodes.get(node);
         
-        if (!node) return;
+        if (!attributes) return;
         
-        node.numTransactions += is_removed ? -1 : 1;
+        attributes.numTransactions += remove ? -1 : 1;
         
-        if (node.numTransactions === 0) {
-            this.nodes.delete(address);
-            eventEmitter.emit(EventType.RemoveAddressFromGraph, address);
+        if (attributes.numTransactions === 0) {
+            this.nodes.delete(node);
+            eventEmitter.emit(EventType.RemoveAddressFromGraph, node);
             return;
         }
         
-        const newBalance = node.netBalance + value;
-        node.netBalance = newBalance;
-        eventEmitter.emit(EventType.UpdateNodeNetBalance, address, newBalance);
+        const newBalance = attributes.netBalance + value;
+        attributes.netBalance = newBalance;
+        eventEmitter.emit(EventType.UpdateNodeNetBalance, node, newBalance);
     }
 
-    public async updateNodesFromTransaction(tx: Transaction, is_removed: boolean = false) {
+    public async mempoolUpdate(tx: Transaction, remove: boolean = false) {
         await this.addNodesFromTransaction(tx);
         // todo: fix ghost nodes issue (nodes without transactions)
-        const reverse_tx_multiplier = is_removed ? -1 : 1;
+        const reverse_tx_multiplier = remove ? -1 : 1;
 
-        this.updateNode(tx, -Number(tx.value) * reverse_tx_multiplier, true, is_removed);
-        this.updateNode(tx, Number(tx.value) * reverse_tx_multiplier, false, is_removed);
+        this.updateNode(tx.to, -Number(tx.value) * reverse_tx_multiplier, remove);
+        this.updateNode(tx.from, Number(tx.value) * reverse_tx_multiplier, remove);
     }
 
     private async addNodesFromTransaction(tx: Transaction) {
