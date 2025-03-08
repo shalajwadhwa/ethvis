@@ -27,6 +27,7 @@ class MempoolTracker {
       const to_remove = this.mempool.shift();
       if (to_remove) {
           eventEmitter.emit(EventType.MempoolUpdate, to_remove, MempoolUpdateEventType.Remove);
+          eventEmitter.emit(EventType.RemoveTransactionFromGraph, to_remove);
       }
     }
   }

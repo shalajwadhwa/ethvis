@@ -1,9 +1,15 @@
 import { Transaction } from '@/app/types/transaction';
 import { Attributes } from '@/app/types/graph';
+import { MinedTransactionResponse } from '@/app/types/response';
 
 export interface NewPendingTransactionEvent {
     type: EventType.NewPendingTransaction;
     tx: Transaction;
+}
+
+export interface NewMinedTransactionEvent {
+    type: EventType.NewMinedTransaction;
+    response: MinedTransactionResponse;
 }
 
 export interface AddTransactionToMempoolEvent {
@@ -24,6 +30,11 @@ export interface RemoveAddressFromGraphEvent {
 
 export interface AddTransactionToGraphEvent {
     type: EventType.AddTransactionToGraph;
+    tx: Transaction;
+}
+
+export interface RemoveTransactionFromGraphEvent {
+    type: EventType.RemoveTransactionFromGraph;
     tx: Transaction;
 }
 
@@ -56,6 +67,7 @@ export enum EventType {
     MempoolUpdate = 'mempoolUpdate',
     AddAddressToGraph = 'addAddressToGraph',
     AddTransactionToGraph = 'addTransactionToGraph',
+    RemoveTransactionFromGraph = 'removeTransactionFromGraph',
     RemoveAddressFromGraph = 'removeAddressFromGraph',
     UpdateNodeNetBalance = 'updateNodeNetBalance',
     NewTopNode = 'newTopNode',

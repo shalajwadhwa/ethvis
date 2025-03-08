@@ -5,6 +5,7 @@ import { NodeType, EdgeType } from '@/app/types/graph';
 import Values from 'values.js';
 import { EventType } from '@/app/types/event';
 import eventEmitter from '@/app/lib/EventEmitter';
+import { MinedTransactionResponse } from '@/app/types/response';
 
 const DEFAULT_SHAPE = "circle";
 const CONTRACT_SHAPE = "square";
@@ -13,6 +14,18 @@ const DEFAULT_COLOUR = 'grey';
 const CONTRACT_COLOUR = 'blue';
 const NEGATIVE_COLOUR = 'red';
 const POSITIVE_COLOUR = 'green';
+
+// no transactions validated
+const DEFAULT_EDGE_COLOUR = 'grey';
+// some transactions validated
+const SEMI_MINED_EDGE = 'green';
+// all transactions validated
+const MINED_EDGE_COLOUR = 'purple';
+
+// todo: implement additional edge colours
+// some transactions removed
+// const SEMI_REMOVED_EDGE = 'red';
+// all transactions removed - flicker node
 
 const NUM_COLOUR_BINS = 5;
 const MAX_TRANSACTION_VALUE = 4 * 1e18;
@@ -46,7 +59,7 @@ class GraphHandler {
     );
     eventEmitter.on(
       EventType.NewMinedTransaction,
-      (tx) => GraphHandler.colourMinedTransaction(sigma, tx)
+      (response) => GraphHandler.colourMinedTransaction(sigma, response)
     )
   }
 
@@ -83,19 +96,54 @@ class GraphHandler {
     }
   }
 
-  public static addEdge(sigma: Sigma<NodeType, EdgeType>, from: string, to: string): void {
+  public static addEdge(sigma: Sigma<NodeType, EdgeType>, from: string, to: string, hash: string): void {
     const graph: Graph = sigma.getGraph();
     if (!graph) {
       return;
     }
 
-    if (!graph.hasEdge(from, to)) {
-      graph.addEdge(from, to);
+    const edge = graph.hasEdge(from, to);
+    if (edge) {
+      const attributes = graph.getEdgeAttributes(from, to);
+      attributes.pendingTx.push(hash);
+      graph.setEdgeAttribute(from, to, 'pendingTx', attributes.pendingTx);
+      if (attributes.color === MINED_EDGE_COLOUR) {
+        this.setEdgeColour(sigma, from, to, SEMI_MINED_EDGE);
+      }
+    } else {
+      graph.addEdge(from, to, { color: DEFAULT_EDGE_COLOUR, pendingTx: [hash], minedTx: [] });
+    }
+  }
+
+  public static removeEdge(sigma: Sigma<NodeType, EdgeType>, from: string, to: string, hash: string): void {
+    const graph: Graph = sigma.getGraph();
+    if (!graph) {
+      return;
+    }
+
+    const edge = graph.hasEdge(from, to);
+    if (edge) {
+      const attributes = graph.getEdgeAttributes(from, to);
+      const pendingTx = attributes.pendingTx;
+
+      const minedTx = attributes.minedTx;
+      const index = minedTx.indexOf(hash);
+      if (index > -1) {
+        minedTx.splice(index, 1);
+      }
+
+      if (minedTx.length === 0 && pendingTx.length === 0) {
+        graph.dropEdge(from, to);
+      } else {
+        graph.setEdgeAttribute(from, to, 'pendingTx', pendingTx);
+        graph.setEdgeAttribute(from, to, 'minedTx', minedTx);
+      }
+      // todo: flicker when trying to remove a pending transaction?
     }
   }
 
   public static addTransaction(sigma: Sigma<NodeType, EdgeType>, tx: Transaction): void {
-    this.addEdge(sigma, tx.from, tx.to);
+    this.addEdge(sigma, tx.from, tx.to, tx.hash);
   }
 
   private static setNodeColour(sigma: Sigma<NodeType, EdgeType>, node: string, colour: string): void {
@@ -106,9 +154,6 @@ class GraphHandler {
 
     if (graph.hasNode(node)) {
       graph.setNodeAttribute(node, 'color', colour);
-      if (colour === "purple") {
-        console.log('Setting node colour to purple:', node);
-      }
     }
   }
 
@@ -139,10 +184,48 @@ class GraphHandler {
     }
   }
 
-  private static colourMinedTransaction(sigma: Sigma<NodeType, EdgeType>, tx: Transaction): void {
-    console.log('Mined transaction:', tx);
-    this.setNodeColour(sigma, tx.from, "purple");
-    this.setNodeColour(sigma, tx.to, "purple");
+  private static setEdgeColour(sigma: Sigma<NodeType, EdgeType>, from: string, to: string, colour: string): void {
+    const graph: Graph = sigma.getGraph();
+    if (!graph) {
+      return;
+    }
+
+    if (graph.hasEdge(from, to)) {
+      graph.setEdgeAttribute(from, to, 'color', colour);
+    }
+  }
+
+  private static colourMinedTransaction(sigma: Sigma<NodeType, EdgeType>, response: MinedTransactionResponse): void {
+    const tx = response.transaction;
+
+    const graph: Graph = sigma.getGraph();
+    if (!graph) {
+      return;
+    }
+
+    const edge = graph.hasEdge(tx.from, tx.to);
+    if (edge) {
+      const attributes = graph.getEdgeAttributes(tx.from, tx.to);
+      const minedTx = attributes.minedTx;
+      const pendingTx = attributes.pendingTx;
+
+      if (pendingTx.includes(tx.hash)) {
+        pendingTx.splice(pendingTx.indexOf(tx.hash), 1);
+        minedTx.push(tx.hash);     
+        graph.setEdgeAttribute(tx.from, tx.to, 'pendingTx', pendingTx);
+        graph.setEdgeAttribute(tx.from, tx.to, 'minedTx', minedTx);   
+      }
+
+      console.log("COLOUR_MINED_TRANSACTION", pendingTx, minedTx);
+
+      if (pendingTx.length === 0 && minedTx.length > 0) {
+        this.setEdgeColour(sigma, tx.from, tx.to, MINED_EDGE_COLOUR);
+      } 
+      else if (pendingTx.length > 0 && minedTx.length > 0) {
+        console.log("SEMI_MINED_EDGE", pendingTx, minedTx);
+        this.setEdgeColour(sigma, tx.from, tx.to, SEMI_MINED_EDGE);
+      }
+    }
   }
 }
 
