@@ -2,14 +2,12 @@ import eventEmitter from '@/app/lib/EventEmitter';
 import { EventType } from '@/app/types/event';
 import TopNodesTracker from '@/app/lib/TopNodesTracker';
 import MempoolTracker from '@/app/lib/MempoolTracker';
-import NodesTracker from '@/app/lib/NodesTracker';
 import Sigma from "sigma";
 import { NodeType, EdgeType } from "@/app/types/graph";
 import GraphHandler from '@/app/lib/GraphHandler';
 
 class EthereumTracker {
     private static instance: EthereumTracker;
-    private nodesTracker: NodesTracker = new NodesTracker();
     private topNodesTracker: TopNodesTracker = new TopNodesTracker();
     private mempoolTracker: MempoolTracker = new MempoolTracker();
     private graphHandler: GraphHandler | null = null;
@@ -33,7 +31,6 @@ class EthereumTracker {
 
     public changeVisualisation(type: string) {
         if (type !== this.visualisationType) {
-            this.nodesTracker.resetTracker();
             this.topNodesTracker.resetTracker();
             this.mempoolTracker.resetTracker();
             this.graphHandler?.resetHandler();
@@ -42,7 +39,7 @@ class EthereumTracker {
     }
 
     public getNodeAttributes(node: string) {
-        return this.nodesTracker.getNode(node);
+        return this.mempoolTracker.getNode(node);
     }
 
     public getTopNodes() {
@@ -51,7 +48,7 @@ class EthereumTracker {
 
     public updateTopNodes(node: string) {
         // todo: drop nodes when they are no longer in the graph
-        const nodeAttributes = this.nodesTracker.getNode(node);
+        const nodeAttributes = this.mempoolTracker.getNode(node);
         if (!nodeAttributes) {
             return;
         }

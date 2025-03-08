@@ -1,5 +1,5 @@
 import eventEmitter from '@/app/lib/EventEmitter';
-import { EventType, MempoolUpdateEventType } from '@/app/types/event';
+import { EventType } from '@/app/types/event';
 import EthereumApiClient from "@/app/lib/EthereumApiClient";
 import { AddressInfo, AddressInfoResponse, Attributes } from '@/app/types/graph';
 import { Transaction } from '@/app/types/transaction';
@@ -14,18 +14,6 @@ enum ATTRIBUTES {
 
 class NodesTracker {
     private nodes: Map<string, Attributes> = new Map();
-
-    public constructor() {
-        eventEmitter.on(
-            EventType.NewPendingTransaction,
-            (tx) => this.addNodesFromTransaction(tx)
-        )
-
-        eventEmitter.on(
-            EventType.MempoolUpdate,
-            (tx, eventType) => this.updateNodesFromTransaction(tx, eventType === MempoolUpdateEventType.Remove)
-        )
-    }
 
     public getNodes(): Map<string, Attributes> {
         return this.nodes;
@@ -104,7 +92,8 @@ class NodesTracker {
         eventEmitter.emit(EventType.UpdateNodeNetBalance, address, newBalance);
     }
 
-    private updateNodesFromTransaction(tx: Transaction, is_removed: boolean = false) {
+    public async updateNodesFromTransaction(tx: Transaction, is_removed: boolean = false) {
+        await this.addNodesFromTransaction(tx);
         // todo: fix ghost nodes issue (nodes without transactions)
         const reverse_tx_multiplier = is_removed ? -1 : 1;
 
@@ -119,8 +108,6 @@ class NodesTracker {
         if (!this.nodes.has(tx.to)) {
             await this.addNewAddress(tx.to, true);
         }
-
-        eventEmitter.emit(EventType.AddTransactionToMempool, tx);
     }
 }
 

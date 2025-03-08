@@ -1,32 +1,39 @@
 import eventEmitter from '@/app/lib/EventEmitter';
 import { Transaction } from '@/app/types/transaction';
-import { EventType, MempoolUpdateEventType } from '@/app/types/event';
+import { EventType } from '@/app/types/event';
+import NodesTracker from './NodesTracker';
 
-const MAX_MEMPOOL_SIZE = 2000;
+const MAX_MEMPOOL_SIZE = 200;
 
 class MempoolTracker {
   private mempool: Transaction[] = [];
+  private nodes = new NodesTracker();
 
-  public constructor() {
+  constructor() {
     eventEmitter.on(
-      EventType.AddTransactionToMempool,
+      EventType.NewPendingTransaction,
       (tx) => this.append(tx)
-    );
+    )
+  }
+
+  public getNode(node: string) {
+    return this.nodes.getNode(node);
   }
 
   public resetTracker(): void {
     this.mempool = [];
+    this.nodes.resetTracker();
   }
 
-  private append(tx: Transaction) {
+  private async append(tx: Transaction) {
     this.mempool.push(tx);
-    eventEmitter.emit(EventType.MempoolUpdate, tx, MempoolUpdateEventType.Add);
+    await this.nodes.updateNodesFromTransaction(tx);
     eventEmitter.emit(EventType.AddTransactionToGraph, tx);
 
     if (this.mempool.length >= MAX_MEMPOOL_SIZE) {
       const to_remove = this.mempool.shift();
       if (to_remove) {
-          eventEmitter.emit(EventType.MempoolUpdate, to_remove, MempoolUpdateEventType.Remove);
+          await this.nodes.updateNodesFromTransaction(to_remove, true);
           eventEmitter.emit(EventType.RemoveTransactionFromGraph, to_remove);
       }
     }
