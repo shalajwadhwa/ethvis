@@ -6,7 +6,7 @@ import "@react-sigma/core/lib/style.css";
 import Sigma from "sigma";
 import EthereumTracker from "@/app/lib/EthereumTracker";
 import "@/app/visualise/style.css";
-import { NodeType, EdgeType } from "@/app/types/graph";
+import { Attributes, EdgeType } from "@/app/types/graph";
 import NodeAttributes from "@/app/visualise/components/NodeAttributes";
 import Fa2Graph from "@/app/visualise/components/Fa2Graph";
 import SidePanel from "@/app/visualise/components/SidePanel";
@@ -21,7 +21,7 @@ import { NodeSquareProgram } from "@sigma/node-square";
 import VisualisationSelector from "@/app/visualise/components/VisualisationSelector";
 
 const VisualisePage = () => {
-  const [sigma, setSigma] = useState<Sigma<NodeType, EdgeType> | null>(null);
+  const [sigma, setSigma] = useState<Sigma<Attributes, EdgeType> | null>(null);
   const client = useRef(EthereumApiClient.getInstance());
   const ethereumTracker = useRef(EthereumTracker.getInstance());
   const [hoveredNode, setHoveredNode] = useState<string | null>(null);
@@ -46,7 +46,11 @@ const VisualisePage = () => {
   return (
       <ResizablePanelGroup direction="horizontal">
         <ResizablePanel defaultSize={80} className="relative">
-          <SigmaContainer ref={setSigma} settings={sigmaSettings} className="w-full h-screen">
+          <SigmaContainer<Attributes, EdgeType> 
+            ref={setSigma} 
+            settings={sigmaSettings} 
+            className="w-full h-screen"
+          >
             <Fa2Graph setHoveredNode={setHoveredNode} />
           </SigmaContainer>
 

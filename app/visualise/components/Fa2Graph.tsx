@@ -1,7 +1,9 @@
 import React, { useEffect, useState } from "react";
 import { ForceAtlas2LayoutParameters } from "graphology-layout-forceatlas2";
+// import { useSigma } from "@react-sigma/core";
 import { useWorkerLayoutForceAtlas2 } from "@react-sigma/layout-forceatlas2";
 import { useRegisterEvents } from "@react-sigma/core";
+// import { NodeType, EdgeType } from "@/app/types/graph";
 
 const Fa2Graph = ({
   setHoveredNode,
@@ -27,6 +29,7 @@ const Fa2Graph = ({
 
   const { start, stop, isRunning } = useWorkerLayoutForceAtlas2(options);
   const registerEvents = useRegisterEvents();
+  // const sigma = useSigma<NodeType, EdgeType>();
 
   if (!isRunning) {
     console.log("starting FA2");

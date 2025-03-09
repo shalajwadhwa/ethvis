@@ -1,11 +1,12 @@
 import Graph from 'graphology';
 import { Transaction } from '@/app/types/transaction';
 import Sigma from 'sigma';
-import { NodeType, EdgeType } from '@/app/types/graph';
+import { AddressInfo, AddressInfoResponse, Attributes, EdgeType } from '@/app/types/graph';
 import Values from 'values.js';
 import { EventType } from '@/app/types/event';
 import eventEmitter from '@/app/lib/EventEmitter';
 import { MinedTransactionResponse } from '@/app/types/response';
+import EthereumApiClient from './EthereumApiClient';
 
 const DEFAULT_SHAPE = "circle";
 const CONTRACT_SHAPE = "square";
@@ -34,17 +35,43 @@ const BIN_INTERVAL = MAX_TRANSACTION_VALUE / NUM_COLOUR_BINS;
 const negativeScale = new Values(NEGATIVE_COLOUR).shades(NUM_COLOUR_BINS);
 const positiveScale = new Values(POSITIVE_COLOUR).shades(NUM_COLOUR_BINS);
 
+enum ATTRIBUTES {
+  LABEL = 'label',
+  NAME = 'name',
+  WEBSITE = 'website',
+  NAMETAG = 'nameTag',
+  SYMBOL = 'symbol',
+}
 
 class GraphHandler {
-  public static sigma: Sigma<NodeType, EdgeType>;
+  private static instance: GraphHandler;
+  public static sigma: Sigma<Attributes, EdgeType>;
 
-  public constructor(sigma: Sigma<NodeType, EdgeType>) {
+  public constructor(sigma: Sigma<Attributes, EdgeType>) {
     GraphHandler.sigma = sigma;
+    GraphHandler.instance = this;
 
     eventEmitter.on(
       EventType.NewMinedTransaction,
-      (response) => GraphHandler.colourMinedTransaction(sigma, response)
+      (response) => GraphHandler.colourMinedTransaction(response)
     )
+  }
+
+  public static getInstance(): GraphHandler {
+    if (!GraphHandler.instance) {
+      throw new Error('GraphHandler not instantiated');
+    }
+
+    return GraphHandler.instance;
+  }
+
+  public static getNodeAttributes(node: string): Attributes | undefined {
+    const graph: Graph = GraphHandler.sigma.getGraph();
+    if (!graph) {
+      return;
+    }
+
+    return graph.getNodeAttributes(node) as Attributes;
   }
 
   public static resetHandler(): void {
@@ -56,16 +83,20 @@ class GraphHandler {
     graph.clear();
   }
 
-  public static addNode(node: string, isContract: boolean): void {
+  public static addNode(node: string, attributes: Attributes): void {
     const graph: Graph = GraphHandler.sigma.getGraph();
     if (!graph) {
       return;
     }
 
-    const colour = isContract ? CONTRACT_COLOUR : DEFAULT_COLOUR;
-    const shape = isContract ? CONTRACT_SHAPE : DEFAULT_SHAPE;
+    const colour = attributes.isContract ? CONTRACT_COLOUR : DEFAULT_COLOUR;
+    const shape = attributes.isContract ? CONTRACT_SHAPE : DEFAULT_SHAPE;
+    attributes.color = colour;
+    attributes.type = shape;
+    attributes.size = 4;
+
     if (!graph.hasNode(node)) {
-      graph.addNode(node, { label: node, x: Math.random(), y: Math.random(), size: 4, color: colour, isContract: isContract, type: shape });
+      graph.addNode(node, { x: Math.random(), y: Math.random(), ...attributes });
     }
   }
 
@@ -99,7 +130,7 @@ class GraphHandler {
     }
   }
 
-  public static removeEdge(sigma: Sigma<NodeType, EdgeType>, from: string, to: string, hash: string): void {
+  public static removeEdge(sigma: Sigma<Attributes, EdgeType>, from: string, to: string, hash: string): void {
     const graph: Graph = sigma.getGraph();
     if (!graph) {
       return;
@@ -141,6 +172,19 @@ class GraphHandler {
     }
   }
 
+  // todo: fix types
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  public static updateNodeAttribute(node: string, attribute: string, value: any): void {
+    const graph: Graph = GraphHandler.sigma.getGraph();
+    if (!graph) {
+      return;
+    }
+
+    if (graph.hasNode(node)) {
+      graph.setNodeAttribute(node, attribute, value);
+    }
+  }
+
   public static updateNodeColour(node: string, netBalance: number): void {
     const isContract = GraphHandler.sigma.getGraph().getNodeAttribute(node, 'isContract');
     if (isContract) {
@@ -179,10 +223,10 @@ class GraphHandler {
     }
   }
 
-  private static colourMinedTransaction(sigma: Sigma<NodeType, EdgeType>, response: MinedTransactionResponse): void {
+  private static colourMinedTransaction(response: MinedTransactionResponse): void {
     const tx = response.transaction;
 
-    const graph: Graph = sigma.getGraph();
+    const graph: Graph = GraphHandler.sigma.getGraph();
     if (!graph) {
       return;
     }
@@ -210,6 +254,81 @@ class GraphHandler {
         this.setEdgeColour(tx.from, tx.to, SEMI_MINED_EDGE);
       }
     }
+  }
+
+  public async mempoolUpdate(tx: Transaction, remove: boolean = false) {
+    await this.addNodesFromTransaction(tx);
+    // todo: fix ghost nodes issue (nodes without transactions)
+    const reverse_tx_multiplier = remove ? -1 : 1;
+
+    this.updateNode(tx.to, -Number(tx.value) * reverse_tx_multiplier, remove);
+    this.updateNode(tx.from, Number(tx.value) * reverse_tx_multiplier, remove);
+  }
+
+  private async addNodesFromTransaction(tx: Transaction) {
+    await this.addNewAddress(tx.from);
+    await this.addNewAddress(tx.to, true);
+  }
+
+  private async addNewAddress(address: string, isTo=false): Promise<void> {
+    if (GraphHandler.sigma.getGraph().hasNode(address)) {
+        return;
+    }
+
+    const nodeAttributes: AddressInfoResponse = await EthereumApiClient.getInstance().getInfo(address);
+
+    let isContract = false;
+    if (isTo) {
+        const contract = await EthereumApiClient.getInstance().isCode(address);
+        if (contract !== '0x') {
+            isContract = true; 
+        }
+    }
+
+    const attributes: Attributes = this.simplifyAttributes(address, nodeAttributes, isContract);
+
+    GraphHandler.addNode(address, attributes);
+  }
+
+  private simplifyAttributes(address: string, response: AddressInfoResponse, isContract: boolean): Attributes {
+    const result: Attributes = { address: address, isContract, netBalance: 0, numTransactions: 0 };
+
+    if (!response) {
+        return result;
+    }
+
+    for (const entry of response) {
+        for (const attribute of Object.values(ATTRIBUTES)) {
+            const value = entry[attribute as keyof AddressInfo];
+            if (value) {
+                if (!result[attribute]) {
+                    result[attribute] = new Set();
+                }
+                if (typeof value === 'string') {
+                    result[attribute].add(value);
+                }
+            }
+        }
+    }
+
+    return result;
+  }
+
+  private updateNode(node: string, value: number, remove: boolean): void {
+    const attributes: Attributes | undefined = GraphHandler.getNodeAttributes(node);
+    
+    if (!attributes) return;
+    
+    attributes.numTransactions += remove ? -1 : 1;
+    
+    if (attributes.numTransactions === 0) {
+        GraphHandler.removeNode(node);
+        return;
+    }
+    
+    const newBalance = attributes.netBalance + value;
+    GraphHandler.updateNodeAttribute(node, 'netBalance', newBalance);
+    GraphHandler.updateNodeColour(node, newBalance);
   }
 }
 

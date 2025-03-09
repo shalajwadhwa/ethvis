@@ -1,15 +1,31 @@
 import TopNodesTracker from '@/app/lib/TopNodesTracker';
-import MempoolTracker from '@/app/lib/MempoolTracker';
 import Sigma from "sigma";
-import { NodeType, EdgeType } from "@/app/types/graph";
+import { Attributes, EdgeType } from "@/app/types/graph";
 import GraphHandler from '@/app/lib/GraphHandler';
+import eventEmitter from './EventEmitter';
+import { Transaction } from '../types/transaction';
+import { EventType } from '../types/event';
+
+const MAX_MEMPOOL_SIZE = 200;
 
 class EthereumTracker {
     private static instance: EthereumTracker;
-    private topNodesTracker: TopNodesTracker = new TopNodesTracker();
-    private mempoolTracker: MempoolTracker = new MempoolTracker();
-    private graphHandler: GraphHandler | null = null;
-    private visualisationType: string = 'default';
+    private mempool: Transaction[];
+    private graphHandler: GraphHandler | null;
+    private topNodesTracker: TopNodesTracker;
+    private visualisationType: string;
+
+    constructor() {
+        this.mempool = [];
+        this.graphHandler = null;
+        this.topNodesTracker = new TopNodesTracker();
+        this.visualisationType = 'default';
+
+        eventEmitter.on(
+            EventType.NewPendingTransaction,
+            (tx) => this.append(tx)
+        )
+    }
 
     public static getInstance(): EthereumTracker {
         if (!EthereumTracker.instance) {
@@ -19,7 +35,7 @@ class EthereumTracker {
         return EthereumTracker.instance;
     }
 
-    public setSigma(sigma: Sigma<NodeType, EdgeType>) { 
+    public setSigma(sigma: Sigma<Attributes, EdgeType>) { 
         this.graphHandler = new GraphHandler(sigma);
 
         // todo: make GraphHandler emit an event when an edge is added or removed to update the top nodes
@@ -28,17 +44,33 @@ class EthereumTracker {
         // );
     }
 
+    private async append(tx: Transaction) {
+        this.mempool.push(tx);
+    
+        await GraphHandler.getInstance().mempoolUpdate(tx);
+        GraphHandler.addTransaction(tx);
+    
+        if (this.mempool.length >= MAX_MEMPOOL_SIZE) {
+          const to_remove = this.mempool.shift();
+          if (to_remove) {
+              await GraphHandler.getInstance().mempoolUpdate(to_remove, true);
+              // todo: implement removeTransaction
+          }
+        }
+      }
+
     public changeVisualisation(type: string) {
         if (type !== this.visualisationType) {
             this.topNodesTracker.resetTracker();
-            this.mempoolTracker.resetTracker();
+            // this.mempoolTracker.resetTracker();
+            this.mempool = [];
             GraphHandler.resetHandler();
             this.visualisationType = type;
         }
     }
 
     public getNodeAttributes(node: string) {
-        return this.mempoolTracker.getNode(node);
+        return GraphHandler.getNodeAttributes(node);
     }
 
     public getTopNodes() {
@@ -47,7 +79,7 @@ class EthereumTracker {
 
     public updateTopNodes(node: string) {
         // todo: drop nodes when they are no longer in the graph
-        const nodeAttributes = this.mempoolTracker.getNode(node);
+        const nodeAttributes = GraphHandler.getNodeAttributes(node);
         if (!nodeAttributes) {
             return;
         }
