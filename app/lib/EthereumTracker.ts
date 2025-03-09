@@ -48,7 +48,7 @@ class EthereumTracker {
         this.mempool.push(tx);
     
         await GraphHandler.getInstance().mempoolUpdate(tx);
-        GraphHandler.getInstance().addTransaction(tx);
+        GraphHandler.getInstance().handleNewTransaction(tx);
     
         if (this.mempool.length >= MAX_MEMPOOL_SIZE) {
           const to_remove = this.mempool.shift();

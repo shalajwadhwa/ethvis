@@ -83,7 +83,41 @@ class GraphHandler {
     graph.clear();
   }
 
-  public addNode(node: string, attributes: Attributes): void {
+  public handleNewTransaction(tx: Transaction): void {
+    const graph: Graph = this.sigma.getGraph();
+    if (!graph) {
+      return;
+    }
+
+    const edge = graph.hasEdge(tx.from, tx.to);
+    if (edge) {
+      const attributes = graph.getEdgeAttributes(tx.from, tx.to);
+      attributes.pendingTx.push(tx.hash);
+      graph.setEdgeAttribute(tx.from, tx.to, 'pendingTx', attributes.pendingTx);
+
+      if (attributes.color === MINED_EDGE_COLOUR) {
+        graph.setEdgeAttribute(tx.from, tx.to, 'color', SEMI_MINED_EDGE);
+      }
+    } 
+    else {
+      graph.addEdge(tx.from, tx.to, { color: DEFAULT_EDGE_COLOUR, pendingTx: [tx.hash], minedTx: [] });
+    }
+  }
+
+  public async mempoolUpdate(tx: Transaction, remove: boolean = false) {
+    await this.addNodesFromTransaction(tx);
+    // todo: fix ghost nodes issue (nodes without transactions)
+    this.updateNodesFromTransaction(tx, remove);
+  }
+
+  private updateNodesFromTransaction(tx: Transaction, remove: boolean = false) {
+    const reverse_tx_multiplier = remove ? -1 : 1;
+
+    this.updateNode(tx.to, -Number(tx.value) * reverse_tx_multiplier, remove);
+    this.updateNode(tx.from, Number(tx.value) * reverse_tx_multiplier, remove);
+  }
+
+  private addNode(node: string, attributes: Attributes): void {
     const graph: Graph = this.sigma.getGraph();
     if (!graph) {
       return;
@@ -100,7 +134,7 @@ class GraphHandler {
     }
   }
 
-  public removeNode(node: string): void {
+  private removeNode(node: string): void {
     const graph: Graph = this.sigma.getGraph();
     if (!graph) {
       return;
@@ -111,26 +145,7 @@ class GraphHandler {
     }
   }
 
-  public addEdge(from: string, to: string, hash: string): void {
-    const graph: Graph = this.sigma.getGraph();
-    if (!graph) {
-      return;
-    }
-
-    const edge = graph.hasEdge(from, to);
-    if (edge) {
-      const attributes = graph.getEdgeAttributes(from, to);
-      attributes.pendingTx.push(hash);
-      graph.setEdgeAttribute(from, to, 'pendingTx', attributes.pendingTx);
-      if (attributes.color === MINED_EDGE_COLOUR) {
-        this.setEdgeColour(from, to, SEMI_MINED_EDGE);
-      }
-    } else {
-      graph.addEdge(from, to, { color: DEFAULT_EDGE_COLOUR, pendingTx: [hash], minedTx: [] });
-    }
-  }
-
-  public removeEdge(from: string, to: string, hash: string): void {
+  private removeEdge(from: string, to: string, hash: string): void {
     const graph: Graph = this.sigma.getGraph();
     if (!graph) {
       return;
@@ -157,10 +172,6 @@ class GraphHandler {
     }
   }
 
-  public addTransaction(tx: Transaction): void {
-    this.addEdge(tx.from, tx.to, tx.hash);
-  }
-
   private setNodeColour(node: string, colour: string): void {
     const graph: Graph = this.sigma.getGraph();
     if (!graph) {
@@ -174,7 +185,7 @@ class GraphHandler {
 
   // todo: fix types
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  public updateNodeAttribute(node: string, attribute: string, value: any): void {
+  private updateNodeAttribute(node: string, attribute: string, value: any): void {
     const graph: Graph = this.sigma.getGraph();
     if (!graph) {
       return;
@@ -185,7 +196,7 @@ class GraphHandler {
     }
   }
 
-  public updateNodeColour(node: string, netBalance: number): void {
+  private updateNodeColour(node: string, netBalance: number): void {
     const isContract = this.sigma.getGraph().getNodeAttribute(node, 'isContract');
     if (isContract) {
       return;
@@ -209,17 +220,6 @@ class GraphHandler {
     }
     else {
       return;
-    }
-  }
-
-  private setEdgeColour(from: string, to: string, colour: string): void {
-    const graph: Graph = this.sigma.getGraph();
-    if (!graph) {
-      return;
-    }
-
-    if (graph.hasEdge(from, to)) {
-      graph.setEdgeAttribute(from, to, 'color', colour);
     }
   }
 
@@ -247,22 +247,12 @@ class GraphHandler {
       console.log("COLOUR_MINED_TRANSACTION", pendingTx, minedTx);
 
       if (pendingTx.length === 0 && minedTx.length > 0) {
-        this.setEdgeColour(tx.from, tx.to, MINED_EDGE_COLOUR);
+        graph.setEdgeAttribute(tx.from, tx.to, 'color', MINED_EDGE_COLOUR);
       } 
       else if (pendingTx.length > 0 && minedTx.length > 0) {
-        console.log("SEMI_MINED_EDGE", pendingTx, minedTx);
-        this.setEdgeColour(tx.from, tx.to, SEMI_MINED_EDGE);
+        graph.setEdgeAttribute(tx.from, tx.to, 'color', SEMI_MINED_EDGE);
       }
     }
-  }
-
-  public async mempoolUpdate(tx: Transaction, remove: boolean = false) {
-    await this.addNodesFromTransaction(tx);
-    // todo: fix ghost nodes issue (nodes without transactions)
-    const reverse_tx_multiplier = remove ? -1 : 1;
-
-    this.updateNode(tx.to, -Number(tx.value) * reverse_tx_multiplier, remove);
-    this.updateNode(tx.from, Number(tx.value) * reverse_tx_multiplier, remove);
   }
 
   private async addNodesFromTransaction(tx: Transaction) {
