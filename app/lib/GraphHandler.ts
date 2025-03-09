@@ -45,15 +45,15 @@ enum ATTRIBUTES {
 
 class GraphHandler {
   private static instance: GraphHandler;
-  public static sigma: Sigma<Attributes, EdgeType>;
+  public sigma: Sigma<Attributes, EdgeType>;
 
   public constructor(sigma: Sigma<Attributes, EdgeType>) {
-    GraphHandler.sigma = sigma;
+    this.sigma = sigma;
     GraphHandler.instance = this;
 
     eventEmitter.on(
       EventType.NewMinedTransaction,
-      (response) => GraphHandler.colourMinedTransaction(response)
+      (response) => this.colourMinedTransaction(response)
     )
   }
 
@@ -65,8 +65,8 @@ class GraphHandler {
     return GraphHandler.instance;
   }
 
-  public static getNodeAttributes(node: string): Attributes | undefined {
-    const graph: Graph = GraphHandler.sigma.getGraph();
+  public getNodeAttributes(node: string): Attributes | undefined {
+    const graph: Graph = this.sigma.getGraph();
     if (!graph) {
       return;
     }
@@ -74,8 +74,8 @@ class GraphHandler {
     return graph.getNodeAttributes(node) as Attributes;
   }
 
-  public static resetHandler(): void {
-    const graph: Graph = GraphHandler.sigma.getGraph();
+  public resetHandler(): void {
+    const graph: Graph = this.sigma.getGraph();
     if (!graph) {
       return;
     }
@@ -83,8 +83,8 @@ class GraphHandler {
     graph.clear();
   }
 
-  public static addNode(node: string, attributes: Attributes): void {
-    const graph: Graph = GraphHandler.sigma.getGraph();
+  public addNode(node: string, attributes: Attributes): void {
+    const graph: Graph = this.sigma.getGraph();
     if (!graph) {
       return;
     }
@@ -100,8 +100,8 @@ class GraphHandler {
     }
   }
 
-  public static removeNode(node: string): void {
-    const graph: Graph = GraphHandler.sigma.getGraph();
+  public removeNode(node: string): void {
+    const graph: Graph = this.sigma.getGraph();
     if (!graph) {
       return;
     }
@@ -111,8 +111,8 @@ class GraphHandler {
     }
   }
 
-  public static addEdge(from: string, to: string, hash: string): void {
-    const graph: Graph = GraphHandler.sigma.getGraph();
+  public addEdge(from: string, to: string, hash: string): void {
+    const graph: Graph = this.sigma.getGraph();
     if (!graph) {
       return;
     }
@@ -130,8 +130,8 @@ class GraphHandler {
     }
   }
 
-  public static removeEdge(sigma: Sigma<Attributes, EdgeType>, from: string, to: string, hash: string): void {
-    const graph: Graph = sigma.getGraph();
+  public removeEdge(from: string, to: string, hash: string): void {
+    const graph: Graph = this.sigma.getGraph();
     if (!graph) {
       return;
     }
@@ -157,12 +157,12 @@ class GraphHandler {
     }
   }
 
-  public static addTransaction(tx: Transaction): void {
+  public addTransaction(tx: Transaction): void {
     this.addEdge(tx.from, tx.to, tx.hash);
   }
 
-  private static setNodeColour(node: string, colour: string): void {
-    const graph: Graph = GraphHandler.sigma.getGraph();
+  private setNodeColour(node: string, colour: string): void {
+    const graph: Graph = this.sigma.getGraph();
     if (!graph) {
       return;
     }
@@ -174,8 +174,8 @@ class GraphHandler {
 
   // todo: fix types
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  public static updateNodeAttribute(node: string, attribute: string, value: any): void {
-    const graph: Graph = GraphHandler.sigma.getGraph();
+  public updateNodeAttribute(node: string, attribute: string, value: any): void {
+    const graph: Graph = this.sigma.getGraph();
     if (!graph) {
       return;
     }
@@ -185,8 +185,8 @@ class GraphHandler {
     }
   }
 
-  public static updateNodeColour(node: string, netBalance: number): void {
-    const isContract = GraphHandler.sigma.getGraph().getNodeAttribute(node, 'isContract');
+  public updateNodeColour(node: string, netBalance: number): void {
+    const isContract = this.sigma.getGraph().getNodeAttribute(node, 'isContract');
     if (isContract) {
       return;
     }
@@ -212,8 +212,8 @@ class GraphHandler {
     }
   }
 
-  private static setEdgeColour(from: string, to: string, colour: string): void {
-    const graph: Graph = GraphHandler.sigma.getGraph();
+  private setEdgeColour(from: string, to: string, colour: string): void {
+    const graph: Graph = this.sigma.getGraph();
     if (!graph) {
       return;
     }
@@ -223,10 +223,10 @@ class GraphHandler {
     }
   }
 
-  private static colourMinedTransaction(response: MinedTransactionResponse): void {
+  private colourMinedTransaction(response: MinedTransactionResponse): void {
     const tx = response.transaction;
 
-    const graph: Graph = GraphHandler.sigma.getGraph();
+    const graph: Graph = this.sigma.getGraph();
     if (!graph) {
       return;
     }
@@ -271,7 +271,7 @@ class GraphHandler {
   }
 
   private async addNewAddress(address: string, isTo=false): Promise<void> {
-    if (GraphHandler.sigma.getGraph().hasNode(address)) {
+    if (this.sigma.getGraph().hasNode(address)) {
         return;
     }
 
@@ -287,7 +287,7 @@ class GraphHandler {
 
     const attributes: Attributes = this.simplifyAttributes(address, nodeAttributes, isContract);
 
-    GraphHandler.addNode(address, attributes);
+    this.addNode(address, attributes);
   }
 
   private simplifyAttributes(address: string, response: AddressInfoResponse, isContract: boolean): Attributes {
@@ -315,20 +315,20 @@ class GraphHandler {
   }
 
   private updateNode(node: string, value: number, remove: boolean): void {
-    const attributes: Attributes | undefined = GraphHandler.getNodeAttributes(node);
+    const attributes: Attributes | undefined = this.getNodeAttributes(node);
     
     if (!attributes) return;
     
     attributes.numTransactions += remove ? -1 : 1;
     
     if (attributes.numTransactions === 0) {
-        GraphHandler.removeNode(node);
+        this.removeNode(node);
         return;
     }
     
     const newBalance = attributes.netBalance + value;
-    GraphHandler.updateNodeAttribute(node, 'netBalance', newBalance);
-    GraphHandler.updateNodeColour(node, newBalance);
+    this.updateNodeAttribute(node, 'netBalance', newBalance);
+    this.updateNodeColour(node, newBalance);
   }
 }
 

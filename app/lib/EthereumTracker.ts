@@ -48,7 +48,7 @@ class EthereumTracker {
         this.mempool.push(tx);
     
         await GraphHandler.getInstance().mempoolUpdate(tx);
-        GraphHandler.addTransaction(tx);
+        GraphHandler.getInstance().addTransaction(tx);
     
         if (this.mempool.length >= MAX_MEMPOOL_SIZE) {
           const to_remove = this.mempool.shift();
@@ -62,15 +62,14 @@ class EthereumTracker {
     public changeVisualisation(type: string) {
         if (type !== this.visualisationType) {
             this.topNodesTracker.resetTracker();
-            // this.mempoolTracker.resetTracker();
             this.mempool = [];
-            GraphHandler.resetHandler();
+            GraphHandler.getInstance().resetHandler();
             this.visualisationType = type;
         }
     }
 
     public getNodeAttributes(node: string) {
-        return GraphHandler.getNodeAttributes(node);
+        return GraphHandler.getInstance().getNodeAttributes(node);
     }
 
     public getTopNodes() {
@@ -79,7 +78,7 @@ class EthereumTracker {
 
     public updateTopNodes(node: string) {
         // todo: drop nodes when they are no longer in the graph
-        const nodeAttributes = GraphHandler.getNodeAttributes(node);
+        const nodeAttributes = GraphHandler.getInstance().getNodeAttributes(node);
         if (!nodeAttributes) {
             return;
         }
