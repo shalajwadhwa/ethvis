@@ -36,10 +36,10 @@ const positiveScale = new Values(POSITIVE_COLOUR).shades(NUM_COLOUR_BINS);
 
 
 class GraphHandler {
-  private sigma: Sigma<NodeType, EdgeType>;
+  public static sigma: Sigma<NodeType, EdgeType>;
 
   public constructor(sigma: Sigma<NodeType, EdgeType>) {
-    this.sigma = sigma;
+    GraphHandler.sigma = sigma;
 
     eventEmitter.on(
       EventType.AddAddressToGraph,
@@ -63,8 +63,8 @@ class GraphHandler {
     )
   }
 
-  public resetHandler(): void {
-    const graph: Graph = this.sigma.getGraph();
+  public static resetHandler(): void {
+    const graph: Graph = GraphHandler.sigma.getGraph();
     if (!graph) {
       return;
     }
