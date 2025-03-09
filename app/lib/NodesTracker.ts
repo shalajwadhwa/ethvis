@@ -1,8 +1,7 @@
-import eventEmitter from '@/app/lib/EventEmitter';
-import { EventType } from '@/app/types/event';
 import EthereumApiClient from "@/app/lib/EthereumApiClient";
 import { AddressInfo, AddressInfoResponse, Attributes } from '@/app/types/graph';
 import { Transaction } from '@/app/types/transaction';
+import GraphHandler from './GraphHandler';
 
 enum ATTRIBUTES {
     LABEL = 'label',
@@ -14,10 +13,6 @@ enum ATTRIBUTES {
 
 class NodesTracker {
     private nodes: Map<string, Attributes> = new Map();
-
-    public getNodes(): Map<string, Attributes> {
-        return this.nodes;
-    }
 
     public getNode(address: string): Attributes | undefined {
         return this.nodes.get(address);
@@ -70,7 +65,7 @@ class NodesTracker {
         await this.fetchAttributesAndSaveNode(address, isTo);
         const isContract = this.nodes.get(address)?.isContract || false;
 
-        eventEmitter.emit(EventType.AddAddressToGraph, address, isContract);
+        GraphHandler.addNode(address, isContract);
     }
 
     private updateNode(node: string, value: number, remove: boolean): void {
@@ -82,13 +77,13 @@ class NodesTracker {
         
         if (attributes.numTransactions === 0) {
             this.nodes.delete(node);
-            eventEmitter.emit(EventType.RemoveAddressFromGraph, node);
+            GraphHandler.removeNode(node);
             return;
         }
         
         const newBalance = attributes.netBalance + value;
         attributes.netBalance = newBalance;
-        eventEmitter.emit(EventType.UpdateNodeNetBalance, node, newBalance);
+        GraphHandler.updateNodeColour(node, newBalance);
     }
 
     public async mempoolUpdate(tx: Transaction, remove: boolean = false) {

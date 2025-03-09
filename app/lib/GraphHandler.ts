@@ -42,22 +42,6 @@ class GraphHandler {
     GraphHandler.sigma = sigma;
 
     eventEmitter.on(
-      EventType.AddAddressToGraph,
-      (address, isContract) => GraphHandler.addNode(sigma, address, isContract)
-    );
-    eventEmitter.on(
-      EventType.RemoveAddressFromGraph,
-      (address) => GraphHandler.removeNode(sigma, address)
-    );
-    eventEmitter.on(
-      EventType.AddTransactionToGraph,
-      (tx) => GraphHandler.addTransaction(sigma, tx)
-    );
-    eventEmitter.on(
-      EventType.UpdateNodeNetBalance,
-      (node, netBalance) => GraphHandler.updateNodeColour(sigma, node, netBalance)
-    );
-    eventEmitter.on(
       EventType.NewMinedTransaction,
       (response) => GraphHandler.colourMinedTransaction(sigma, response)
     )
@@ -72,8 +56,8 @@ class GraphHandler {
     graph.clear();
   }
 
-  public static addNode(sigma: Sigma<NodeType, EdgeType>, node: string, isContract: boolean): void {
-    const graph: Graph = sigma.getGraph();
+  public static addNode(node: string, isContract: boolean): void {
+    const graph: Graph = GraphHandler.sigma.getGraph();
     if (!graph) {
       return;
     }
@@ -85,8 +69,8 @@ class GraphHandler {
     }
   }
 
-  public static removeNode(sigma: Sigma<NodeType, EdgeType>, node: string): void {
-    const graph: Graph = sigma.getGraph();
+  public static removeNode(node: string): void {
+    const graph: Graph = GraphHandler.sigma.getGraph();
     if (!graph) {
       return;
     }
@@ -96,8 +80,8 @@ class GraphHandler {
     }
   }
 
-  public static addEdge(sigma: Sigma<NodeType, EdgeType>, from: string, to: string, hash: string): void {
-    const graph: Graph = sigma.getGraph();
+  public static addEdge(from: string, to: string, hash: string): void {
+    const graph: Graph = GraphHandler.sigma.getGraph();
     if (!graph) {
       return;
     }
@@ -108,7 +92,7 @@ class GraphHandler {
       attributes.pendingTx.push(hash);
       graph.setEdgeAttribute(from, to, 'pendingTx', attributes.pendingTx);
       if (attributes.color === MINED_EDGE_COLOUR) {
-        this.setEdgeColour(sigma, from, to, SEMI_MINED_EDGE);
+        this.setEdgeColour(from, to, SEMI_MINED_EDGE);
       }
     } else {
       graph.addEdge(from, to, { color: DEFAULT_EDGE_COLOUR, pendingTx: [hash], minedTx: [] });
@@ -142,12 +126,12 @@ class GraphHandler {
     }
   }
 
-  public static addTransaction(sigma: Sigma<NodeType, EdgeType>, tx: Transaction): void {
-    this.addEdge(sigma, tx.from, tx.to, tx.hash);
+  public static addTransaction(tx: Transaction): void {
+    this.addEdge(tx.from, tx.to, tx.hash);
   }
 
-  private static setNodeColour(sigma: Sigma<NodeType, EdgeType>, node: string, colour: string): void {
-    const graph: Graph = sigma.getGraph();
+  private static setNodeColour(node: string, colour: string): void {
+    const graph: Graph = GraphHandler.sigma.getGraph();
     if (!graph) {
       return;
     }
@@ -157,8 +141,8 @@ class GraphHandler {
     }
   }
 
-  public static updateNodeColour(sigma: Sigma<NodeType, EdgeType>, node: string, netBalance: number): void {
-    const isContract = sigma.getGraph().getNodeAttribute(node, 'isContract');
+  public static updateNodeColour(node: string, netBalance: number): void {
+    const isContract = GraphHandler.sigma.getGraph().getNodeAttribute(node, 'isContract');
     if (isContract) {
       return;
     }
@@ -169,7 +153,7 @@ class GraphHandler {
         interval = NUM_COLOUR_BINS - 1;
       }
       const colour = positiveScale[interval] ? positiveScale[interval].hexString() : POSITIVE_COLOUR;
-      this.setNodeColour(sigma, node, colour);
+      this.setNodeColour(node, colour);
     }
     else if (netBalance < 0) {
       let interval = Math.floor(-netBalance / BIN_INTERVAL);
@@ -177,15 +161,15 @@ class GraphHandler {
         interval = NUM_COLOUR_BINS - 1;
       }
       const colour = negativeScale[interval] ? negativeScale[interval].hexString() : NEGATIVE_COLOUR;
-      this.setNodeColour(sigma, node, colour);
+      this.setNodeColour(node, colour);
     }
     else {
       return;
     }
   }
 
-  private static setEdgeColour(sigma: Sigma<NodeType, EdgeType>, from: string, to: string, colour: string): void {
-    const graph: Graph = sigma.getGraph();
+  private static setEdgeColour(from: string, to: string, colour: string): void {
+    const graph: Graph = GraphHandler.sigma.getGraph();
     if (!graph) {
       return;
     }
@@ -219,11 +203,11 @@ class GraphHandler {
       console.log("COLOUR_MINED_TRANSACTION", pendingTx, minedTx);
 
       if (pendingTx.length === 0 && minedTx.length > 0) {
-        this.setEdgeColour(sigma, tx.from, tx.to, MINED_EDGE_COLOUR);
+        this.setEdgeColour(tx.from, tx.to, MINED_EDGE_COLOUR);
       } 
       else if (pendingTx.length > 0 && minedTx.length > 0) {
         console.log("SEMI_MINED_EDGE", pendingTx, minedTx);
-        this.setEdgeColour(sigma, tx.from, tx.to, SEMI_MINED_EDGE);
+        this.setEdgeColour(tx.from, tx.to, SEMI_MINED_EDGE);
       }
     }
   }

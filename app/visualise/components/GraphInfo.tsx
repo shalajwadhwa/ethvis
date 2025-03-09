@@ -16,9 +16,7 @@ const GraphInfo = ({ sigma }: { sigma: Sigma<NodeType, EdgeType> }) => {
             setEdges(graph.size);
         };
 
-        eventEmitter.on(EventType.AddAddressToGraph, updateGraphInfo);
-        eventEmitter.on(EventType.RemoveAddressFromGraph, updateGraphInfo);
-        eventEmitter.on(EventType.AddTransactionToGraph, updateGraphInfo);
+        eventEmitter.on(EventType.NewPendingTransaction, updateGraphInfo);
     }
     , [sigma]);
   return (

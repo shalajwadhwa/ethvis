@@ -1,5 +1,3 @@
-import eventEmitter from '@/app/lib/EventEmitter';
-import { EventType } from '@/app/types/event';
 import TopNodesTracker from '@/app/lib/TopNodesTracker';
 import MempoolTracker from '@/app/lib/MempoolTracker';
 import Sigma from "sigma";
@@ -24,16 +22,17 @@ class EthereumTracker {
     public setSigma(sigma: Sigma<NodeType, EdgeType>) { 
         this.graphHandler = new GraphHandler(sigma);
 
-        eventEmitter.on(
-            EventType.UpdateNodeNetBalance, (node) => this.updateTopNodes(node)
-        );
+        // todo: make GraphHandler emit an event when an edge is added or removed to update the top nodes
+        // eventEmitter.on(
+        //     EventType.UpdateNodeNetBalance, (node) => this.updateTopNodes(node)
+        // );
     }
 
     public changeVisualisation(type: string) {
         if (type !== this.visualisationType) {
             this.topNodesTracker.resetTracker();
             this.mempoolTracker.resetTracker();
-            this.graphHandler?.resetHandler();
+            GraphHandler.resetHandler();
             this.visualisationType = type;
         }
     }
