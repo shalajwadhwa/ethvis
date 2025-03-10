@@ -4,7 +4,6 @@ import eventEmitter from "@/app/lib/EventEmitter";
 import { EventType } from "@/app/types/event";
 import { AddressInfoResponse } from "@/app/types/graph";
 import { MinedTransactionResponse } from "@/app/types/response";
-import { start } from "repl";
 
 const ALCHEMY_API_KEY = process.env.NEXT_PUBLIC_ALCHEMY_API_KEY;
 const ETH_LABELS_URL = 'http://localhost:3001/labels/'
