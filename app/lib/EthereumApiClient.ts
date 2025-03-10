@@ -4,6 +4,7 @@ import eventEmitter from "@/app/lib/EventEmitter";
 import { EventType } from "@/app/types/event";
 import { AddressInfoResponse } from "@/app/types/graph";
 import { MinedTransactionResponse } from "@/app/types/response";
+import { start } from "repl";
 
 const ALCHEMY_API_KEY = process.env.NEXT_PUBLIC_ALCHEMY_API_KEY;
 const ETH_LABELS_URL = 'http://localhost:3001/labels/'
@@ -80,6 +81,18 @@ class EthereumApiClient {
             .catch(
                 error => console.log("Error fetching address info", error)
             );
+    }
+
+    public async getBlocksFromDates(startDate: string, endDate: string): Promise<string[]> {
+        const start = await this.alchemy.core.send("alchemy_getBlockByTimestamp", [startDate, "before"])
+        const end = await this.alchemy.core.send("alchemy_getBlockByTimestamp", [endDate, "after"])
+
+        const blocks = [];
+        for (let i = start; i < end; i++) {
+            blocks.push(await this.alchemy.core.send("alchemy_getBlockByNumber", [i, true]));
+        }
+
+        return blocks;
     }
 }
 
