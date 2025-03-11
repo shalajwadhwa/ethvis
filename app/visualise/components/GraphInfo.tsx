@@ -1,11 +1,11 @@
 import { Separator } from "@/components/ui/separator";
 import React, { useEffect, useState } from "react";
 import Sigma from "sigma";
-import { NodeType, EdgeType } from "@/app/types/graph";
+import { Attributes, EdgeType } from "@/app/types/graph";
 import eventEmitter from "@/app/lib/EventEmitter";
 import { EventType } from "@/app/types/event";
 
-const GraphInfo = ({ sigma }: { sigma: Sigma<NodeType, EdgeType> }) => {
+const GraphInfo = ({ sigma }: { sigma: Sigma<Attributes, EdgeType> }) => {
     const [nodes, setNodes] = useState<number>(0);
     const [edges, setEdges] = useState<number>(0);
 
