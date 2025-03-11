@@ -83,7 +83,17 @@ class GraphHandler {
     graph.clear();
   }
 
-  public handleNewTransaction(tx: Transaction): void {
+  public async updateGraph(tx: Transaction, remove: boolean = false): Promise<void> {
+    if (remove) {
+      await this.removeTransaction(tx);
+    } else {
+      await this.addTransaction(tx);
+    }
+  }
+
+  private async addTransaction(tx: Transaction): Promise<void> {
+    await this.mempoolUpdate(tx);
+
     const graph: Graph = this.sigma.getGraph();
     if (!graph) {
       return;
@@ -104,8 +114,11 @@ class GraphHandler {
     }
   }
 
-  public async mempoolUpdate(tx: Transaction, remove: boolean = false) {
-    await this.addNodesFromTransaction(tx);
+  private async mempoolUpdate(tx: Transaction, remove: boolean = false): Promise<void> {
+    if (!remove) {
+      await this.addNodesFromTransaction(tx);
+    }
+
     // todo: fix ghost nodes issue (nodes without transactions)
     this.updateNodesFromTransaction(tx, remove);
   }
@@ -145,28 +158,30 @@ class GraphHandler {
     }
   }
 
-  private removeEdge(from: string, to: string, hash: string): void {
+  private async removeTransaction(tx: Transaction): Promise<void> {
+    await this.mempoolUpdate(tx, true);
+
     const graph: Graph = this.sigma.getGraph();
     if (!graph) {
       return;
     }
 
-    const edge = graph.hasEdge(from, to);
+    const edge = graph.hasEdge(tx.from, tx.to);
     if (edge) {
-      const attributes = graph.getEdgeAttributes(from, to);
+      const attributes = graph.getEdgeAttributes(tx.from, tx.to);
       const pendingTx = attributes.pendingTx;
 
       const minedTx = attributes.minedTx;
-      const index = minedTx.indexOf(hash);
+      const index = minedTx.indexOf(tx.hash);
       if (index > -1) {
         minedTx.splice(index, 1);
       }
 
       if (minedTx.length === 0 && pendingTx.length === 0) {
-        graph.dropEdge(from, to);
+        graph.dropEdge(tx.from, tx.to);
       } else {
-        graph.setEdgeAttribute(from, to, 'pendingTx', pendingTx);
-        graph.setEdgeAttribute(from, to, 'minedTx', minedTx);
+        graph.setEdgeAttribute(tx.from, tx.to, 'pendingTx', pendingTx);
+        graph.setEdgeAttribute(tx.from, tx.to, 'minedTx', minedTx);
       }
       // todo: flicker when trying to remove a pending transaction?
     }
@@ -255,7 +270,7 @@ class GraphHandler {
     }
   }
 
-  private async addNodesFromTransaction(tx: Transaction) {
+  private async addNodesFromTransaction(tx: Transaction): Promise<void> {
     await this.addNewAddress(tx.from);
     await this.addNewAddress(tx.to, true);
   }
@@ -265,22 +280,31 @@ class GraphHandler {
         return;
     }
 
-    const nodeAttributes: AddressInfoResponse = await EthereumApiClient.getInstance().getInfo(address);
-
-    let isContract = false;
-    if (isTo) {
-        const contract = await EthereumApiClient.getInstance().isCode(address);
-        if (contract !== '0x') {
-            isContract = true; 
+    const nodeAttributes: AddressInfoResponse | null = await EthereumApiClient.getInstance().getInfo(address)
+      .then(
+        (response) => response)
+      .catch(
+        (error) => {
+            console.log("Error fetching address info", error);
+            return null;
         }
-    }
+    );
+
+    const isContract = isTo && await EthereumApiClient.getInstance().isCode(address)
+      .then(
+        (response) => response !== '0x' ? true : false)
+      .catch(
+        (error) => {
+            console.log("Error fetching contract info", error);
+            return false;
+        }
+    );
 
     const attributes: Attributes = this.simplifyAttributes(address, nodeAttributes, isContract);
-
     this.addNode(address, attributes);
   }
 
-  private simplifyAttributes(address: string, response: AddressInfoResponse, isContract: boolean): Attributes {
+  private simplifyAttributes(address: string, response: AddressInfoResponse | null, isContract: boolean): Attributes {
     const result: Attributes = { address: address, isContract, netBalance: 0, numTransactions: 0 };
 
     if (!response) {
@@ -319,6 +343,8 @@ class GraphHandler {
     const newBalance = attributes.netBalance + value;
     this.updateNodeAttribute(node, 'netBalance', newBalance);
     this.updateNodeColour(node, newBalance);
+    // todo: emit event to update top nodes
+    eventEmitter.emit("topNodes", node);
   }
 }
 

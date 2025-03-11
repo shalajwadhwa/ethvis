@@ -39,25 +39,20 @@ class EthereumTracker {
         this.graphHandler = new GraphHandler(sigma);
 
         // todo: make GraphHandler emit an event when an edge is added or removed to update the top nodes
-        // eventEmitter.on(
-        //     EventType.UpdateNodeNetBalance, (node) => this.updateTopNodes(node)
-        // );
+        eventEmitter.on( "topNodes", (node) => this.updateTopNodes(node));
     }
 
     private async append(tx: Transaction) {
         this.mempool.push(tx);
-    
-        await GraphHandler.getInstance().mempoolUpdate(tx);
-        GraphHandler.getInstance().handleNewTransaction(tx);
+        await GraphHandler.getInstance().updateGraph(tx);
     
         if (this.mempool.length >= MAX_MEMPOOL_SIZE) {
-          const to_remove = this.mempool.shift();
-          if (to_remove) {
-              await GraphHandler.getInstance().mempoolUpdate(to_remove, true);
-              // todo: implement removeTransaction
+          const toRemove = this.mempool.shift();
+          if (toRemove) {
+              await GraphHandler.getInstance().updateGraph(toRemove, true);
           }
         }
-      }
+    }
 
     public changeVisualisation(type: string) {
         if (type !== this.visualisationType) {

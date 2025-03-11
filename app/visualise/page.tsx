@@ -38,6 +38,7 @@ const VisualisePage = () => {
     if (sigma) {
       client.current.subscribeToPendingTransactions();
       client.current.subscribeToMinedTransactions();
+      // todo: client.current.getBlocksFromDates("1740152891", "1740153251");
       ethereumTracker.current.setSigma(sigma);
       ethereumTracker.current.changeVisualisation(visualisationType);
     }
