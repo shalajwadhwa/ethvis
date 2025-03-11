@@ -49,6 +49,7 @@ const Visualisation = ({ visualisationType, setVisualisationType } : { visualisa
         client.current.getTransactionsFromRange("1740152891", "1740153251");
       }
     }
+    // todo: unsubscribe on unmount
   }, [sigma, visualisationType]);
 
   return (
