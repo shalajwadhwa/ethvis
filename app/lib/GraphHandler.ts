@@ -259,8 +259,6 @@ class GraphHandler {
         graph.setEdgeAttribute(tx.from, tx.to, 'minedTx', minedTx);   
       }
 
-      console.log("COLOUR_MINED_TRANSACTION", pendingTx, minedTx);
-
       if (pendingTx.length === 0 && minedTx.length > 0) {
         graph.setEdgeAttribute(tx.from, tx.to, 'color', MINED_EDGE_COLOUR);
       } 

@@ -73,7 +73,6 @@ class EthereumApiClient {
     }
 
     public getInfo(address: string): Promise<AddressInfoResponse> {
-        console.log('Fetching address info for', address);
         return fetch(`${ETH_LABELS_URL}${address}`)
             .then(
                 response => response.json()

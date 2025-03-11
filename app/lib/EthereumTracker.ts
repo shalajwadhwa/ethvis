@@ -56,9 +56,9 @@ class EthereumTracker {
 
     public changeVisualisation(type: string) {
         if (type !== this.visualisationType) {
-            this.topNodesTracker.resetTracker();
-            this.mempool = [];
             GraphHandler.getInstance().resetHandler();
+            this.mempool = [];
+            this.topNodesTracker.resetTracker();
             this.visualisationType = type;
         }
     }
