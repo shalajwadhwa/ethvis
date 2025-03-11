@@ -83,64 +83,85 @@ class EthereumApiClient {
             );
     }
 
-    // todo: refactor into smaller functions
-    public getBlocksFromDates(startDate: string, endDate: string): void {
-        const options = {method: 'GET', headers: {accept: 'application/json'}};
-        
-        const startPromise = fetch(`https://api.g.alchemy.com/data/v1/${ALCHEMY_API_KEY}/utility/blocks/by-timestamp?networks=eth-mainnet&timestamp=${startDate}&direction=BEFORE`, options)
-            .then(res => res.json())
-            .then(res => {
-                console.log("Start block response:", res, res.data[0].block.number);
-                if (!res || (!res.data && !res.data[0] && !res.data[0].block && !res.data[0].blockNumber)) {
-                    throw new Error("Could not determine start block from API response");
-                }
-                return parseInt(res.data[0].block.number);
-            });
+    public async getTransactionsFromRange(startDate: string, endDate: string): Promise<void> {
+        try {
+            const [startBlock, endBlock] = await Promise.all([
+                this.getBlockNumberFromTimestamp(startDate, 'BEFORE'),
+                this.getBlockNumberFromTimestamp(endDate, 'AFTER')
+            ]);
             
-        const endPromise = fetch(`https://api.g.alchemy.com/data/v1/${ALCHEMY_API_KEY}/utility/blocks/by-timestamp?networks=eth-mainnet&timestamp=${endDate}&direction=AFTER`, options)
-            .then(res => res.json())
-            .then(res => {
-                console.log("End block response:", res, res.data[0].block.number);
-                if (!res || (!res.data && !res.data[0] && !res.data[0].block && !res.data[0].blockNumber)) {
-                    throw new Error("Could not determine end block from API response");
-                }
-                return parseInt(res.data[0].block.number);
-            });
+            if (!this.validateBlockRange(startBlock, endBlock)) {
+                return;
+            }
+
+            console.log(`Processing blocks from ${startBlock} to ${endBlock}`);
+            
+            for (let i = startBlock; i < endBlock; i++) {
+                await this.processBlock(i);
+                await new Promise(resolve => setTimeout(resolve, 100));
+            }
+        } catch (error) {
+            console.error("Error in getBlocksFromDates:", error);
+        }
+    }
+
+    private async getBlockNumberFromTimestamp(timestamp: string, direction: 'BEFORE' | 'AFTER'): Promise<number> {
+        const options = {method: 'GET', headers: {accept: 'application/json'}};
+        const directionLabel = direction === 'BEFORE' ? 'Start' : 'End';
         
-        Promise.all([startPromise, endPromise])
-            .then(async ([start, end]) => {
-                if (!start || !end) {
-                    console.error("Invalid block range: start or end block is undefined");
-                    return;
-                }
-                
-                if (end <= start) {
-                    console.error("Invalid block range: end block must be greater than start block");
-                    return;
-                }
+        try {
+            const response = await fetch(
+                `https://api.g.alchemy.com/data/v1/${ALCHEMY_API_KEY}/utility/blocks/by-timestamp?networks=eth-mainnet&timestamp=${timestamp}&direction=${direction}`, 
+                options
+            );
+            
+            const data = await response.json();
+            console.log(`${directionLabel} block response:`, data, data.data[0].block.number);
+            
+            if (!data || !data.data || !data.data[0] || !data.data[0].block || !data.data[0].block.number) {
+                throw new Error(`Could not determine ${directionLabel.toLowerCase()} block from API response`);
+            }
+            
+            return parseInt(data.data[0].block.number);
+        } catch (error) {
+            console.error(`Error fetching ${directionLabel.toLowerCase()} block:`, error);
+            throw error;
+        }
+    }
 
-                console.log(`Processing blocks from ${start} to ${end}`);
-                
-                const blockCount = end - start;
-                if (blockCount > 1000) {
-                    console.warn(`Large block range (${blockCount} blocks) may cause performance issues`);
-                }
-                
-                for (let i = start; i < end; i++) {
-                    await this.alchemy.core.getBlockWithTransactions(i)
-                        .then(block => {
-                            if (block && block.transactions) {
-                                console.log(`Emitting ${block.transactions.length} transactions from block ${i}`);
-                                block.transactions.forEach(async transaction => {
-                                    await GraphHandler.getInstance().updateGraph(transaction as unknown as Transaction);
-                                });
-                            }
-                        })
-                        .catch(error => console.log(`Error fetching block ${i}:`, error));
+    private validateBlockRange(start: number | undefined, end: number | undefined): boolean {
+        if (!start || !end) {
+            console.error("Invalid block range: start or end block is undefined");
+            return false;
+        }
+        
+        if (end <= start) {
+            console.error("Invalid block range: end block must be greater than start block");
+            return false;
+        }
+        
+        const blockCount = end - start;
+        if (blockCount > 1000) {
+            console.warn(`Large block range (${blockCount} blocks) may cause performance issues`);
+        }
+        
+        return true;
+    }
 
-                    await new Promise(resolve => setTimeout(resolve, 100));
+    private async processBlock(blockNumber: number): Promise<void> {
+        try {
+            const block = await this.alchemy.core.getBlockWithTransactions(blockNumber);
+            
+            if (block && block.transactions) {
+                console.log(`Emitting ${block.transactions.length} transactions from block ${blockNumber}`);
+                
+                for (const transaction of block.transactions) {
+                    await GraphHandler.getInstance().updateGraph(transaction as unknown as Transaction);
                 }
-            })
+            }
+        } catch (error) {
+            console.log(`Error fetching block ${blockNumber}:`, error);
+        }
     }
 }
 
