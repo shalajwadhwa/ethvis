@@ -162,7 +162,6 @@ class GraphHandler {
       await this.addNodesFromTransaction(graph, tx);
     }
 
-    // TODO: fix ghost nodes issue (nodes without transactions)
     this.updateNodesFromTransaction(graph, tx, remove);
   }
 
