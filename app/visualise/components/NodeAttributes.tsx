@@ -6,6 +6,7 @@ import {
   CardTitle,
   CardContent,
 } from "@/components/ui/card";
+import { Attributes } from "@/app/types/graph";
 
 const NodeAttributes = ({
   hoveredNode,
@@ -19,6 +20,18 @@ const NodeAttributes = ({
   }
 
   const attributes = ethereumTracker.getNodeAttributes(hoveredNode);
+  
+  const attributesToShow = [
+    "address",
+    "netBalance",
+    "numTransactions",
+    "name",
+    "nameTag",
+    "label",
+    "website",
+    "symbol",
+    "isContract",
+  ];
 
   return (
     <Card className="absolute top-4 left-4 z-10 graph-overlay">
@@ -28,18 +41,37 @@ const NodeAttributes = ({
       <CardContent>
         {attributes && (
           <ul className="space-y-0">
-            {Object.entries(attributes).map(([key, value]) => (
-              <li key={key} className="flex justify-between">
-                <span className="font-small">{key}:</span>
-                <span>
-                  {key === 'isContract'
-                    ? value.toString()
-                    : key === 'netBalance'
-                    ? `${(Number(value) / 10**18).toFixed(4)} ETH`
-                    : value}
-                </span>
-              </li>
-            ))}
+            {attributesToShow.map((key) => {
+              const value = attributes[key as keyof Attributes];
+              
+              if (value === undefined || value === null || value === '') {
+                return null;
+              }
+              
+              return (
+                <li key={key} className="flex justify-between">
+                  <span className="font-small">{key}:</span>
+                  <span>
+                    {key === "isContract" ? (
+                      value.toString()
+                    ) : key === "netBalance" ? (
+                      `${value.toString()} ETH`
+                    ) : key === "address" ? (
+                      <a
+                        href={`https://etherscan.io/address/${value}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-blue-500 dark:text-blue-400 hover:underline"
+                      >
+                        {value}
+                      </a>
+                    ) : (
+                      value
+                    )}
+                  </span>
+                </li>
+              );
+            })}
           </ul>
         )}
       </CardContent>
