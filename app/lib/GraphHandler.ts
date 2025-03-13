@@ -311,7 +311,8 @@ class GraphHandler {
         return result;
     }
 
-    for (const entry of response) {
+    const entries = Array.isArray(response) ? response : [response];    
+    for (const entry of entries) {
         for (const attribute of Object.values(ATTRIBUTES)) {
             const value = entry[attribute as keyof AddressInfo];
             if (value) {
