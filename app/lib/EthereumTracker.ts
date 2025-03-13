@@ -5,6 +5,7 @@ import { Transaction } from '@/app/types/transaction';
 import { EventType } from '@/app/types/event';
 import { Mutex } from 'async-mutex';
 
+// TODO: use mempoool for static visualisation with infinite size
 const MAX_MEMPOOL_SIZE = 200;
 
 class EthereumTracker {
@@ -66,6 +67,7 @@ class EthereumTracker {
             this.mempool = [];
             this.topNodesTracker.resetTracker();
             this.visualisationType = type;
+            this.numTransactions = 0;
         }
     }
 

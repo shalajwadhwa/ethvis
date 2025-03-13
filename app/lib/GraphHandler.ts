@@ -81,6 +81,8 @@ class GraphHandler {
     }
 
     graph.clear();
+    this.numContracts = 0;
+    this.contractExecutions = 0;
   }
 
   public getNumContracts(): number {
