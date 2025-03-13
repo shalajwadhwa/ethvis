@@ -1,29 +1,29 @@
 import TopNodesTracker from '@/app/lib/TopNodesTracker';
-import Sigma from "sigma";
-import { Attributes, EdgeType } from "@/app/types/graph";
 import GraphHandler from '@/app/lib/GraphHandler';
-import eventEmitter from './EventEmitter';
-import { Transaction } from '../types/transaction';
-import { EventType } from '../types/event';
+import eventEmitter from '@/app/lib/EventEmitter';
+import { Transaction } from '@/app/types/transaction';
+import { EventType } from '@/app/types/event';
 
 const MAX_MEMPOOL_SIZE = 200;
 
 class EthereumTracker {
     private static instance: EthereumTracker;
     private mempool: Transaction[];
-    private graphHandler: GraphHandler | null;
     private topNodesTracker: TopNodesTracker;
     private visualisationType: string;
 
     constructor() {
         this.mempool = [];
-        this.graphHandler = null;
         this.topNodesTracker = new TopNodesTracker();
         this.visualisationType = 'default';
 
         eventEmitter.on(
             EventType.NewPendingTransaction,
             (tx) => this.append(tx)
+        )
+        eventEmitter.on(
+            "topNodes",
+            (node) => this.updateTopNodes(node)
         )
     }
 
@@ -33,13 +33,6 @@ class EthereumTracker {
         }
 
         return EthereumTracker.instance;
-    }
-
-    public setSigma(sigma: Sigma<Attributes, EdgeType>) { 
-        this.graphHandler = new GraphHandler(sigma);
-
-        // todo: make GraphHandler emit an event when an edge is added or removed to update the top nodes
-        eventEmitter.on( "topNodes", (node) => this.updateTopNodes(node));
     }
 
     private async append(tx: Transaction) {

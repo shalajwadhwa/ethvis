@@ -29,6 +29,7 @@ export type Attributes = {
   size?: number;
   color?: string;
   type?: string;
+  highlighted?: boolean;
 }
 
 export type EdgeType = { 

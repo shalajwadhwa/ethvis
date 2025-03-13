@@ -19,6 +19,7 @@ import {
 import GraphInfo from "@/app/visualise/components/GraphInfo";
 import { NodeSquareProgram } from "@sigma/node-square";
 import VisualisationSelector from "@/app/visualise/components/VisualisationSelector";
+import GraphHandler from "@/app/lib/GraphHandler";
 
 
 const Visualisation = ({ visualisationType, setVisualisationType } : { visualisationType : string, setVisualisationType: React.Dispatch<React.SetStateAction<string>> }) => {
@@ -26,6 +27,7 @@ const Visualisation = ({ visualisationType, setVisualisationType } : { visualisa
   const client = useRef(EthereumApiClient.getInstance());
   const ethereumTracker = useRef(EthereumTracker.getInstance());
   const [hoveredNode, setHoveredNode] = useState<string | null>(null);
+  const [graphHandlerInitialized, setGraphHandlerInitialized] = useState(false);
 
   const sigmaSettings = {
     nodeProgramClasses: {
@@ -35,22 +37,38 @@ const Visualisation = ({ visualisationType, setVisualisationType } : { visualisa
   };
 
   useEffect(() => {
-    if (sigma) {
-      ethereumTracker.current.setSigma(sigma);
-      ethereumTracker.current.changeVisualisation(visualisationType);
-
-      if (visualisationType === "default") {
-        client.current.subscribeToPendingTransactions();
-        client.current.subscribeToMinedTransactions();
-      }
-      else if (visualisationType === "static") {
-        client.current.unsubscribeFromPendingTransactions();
-        client.current.unsubscribeFromMinedTransactions();
-        client.current.getTransactionsFromRange("1740152891", "1740153251");
-      }
+    if (sigma && !graphHandlerInitialized) {
+      new GraphHandler(sigma);
+      setGraphHandlerInitialized(true);
+      console.log("GraphHandler initialized with sigma instance");
     }
-    // todo: unsubscribe on unmount
-  }, [sigma, visualisationType]);
+  }, [sigma, graphHandlerInitialized]);
+
+  useEffect(() => {
+    if (!sigma || !graphHandlerInitialized) return;
+    
+    ethereumTracker.current.changeVisualisation(visualisationType);
+
+    if (visualisationType === "default") {
+      client.current.subscribeToPendingTransactions();
+      client.current.subscribeToMinedTransactions();
+    }
+    else if (visualisationType === "static") {
+      client.current.unsubscribeFromPendingTransactions();
+      client.current.unsubscribeFromMinedTransactions();
+      client.current.getTransactionsFromRange("1740152891", "1740153251");
+    }
+  }, [sigma, graphHandlerInitialized, visualisationType]);
+
+  useEffect(() => {
+    if (!sigma || !graphHandlerInitialized) return;
+    
+    try {
+      GraphHandler.getInstance().selectNode(hoveredNode);
+    } catch (error) {
+      console.error("Error selecting node:", error);
+    }
+  }, [sigma, graphHandlerInitialized, hoveredNode]);
 
   return (
       <ResizablePanelGroup direction="horizontal">
@@ -74,10 +92,10 @@ const Visualisation = ({ visualisationType, setVisualisationType } : { visualisa
 
         <ResizableHandle withHandle />
 
-        <ResizablePanel defaultSize={20}>
-          <SidePanel ethereumTracker={ethereumTracker.current} />
-        </ResizablePanel>
-      </ResizablePanelGroup>
+      <ResizablePanel defaultSize={20}>
+        <SidePanel ethereumTracker={ethereumTracker.current} setHoveredNode={setHoveredNode} />
+      </ResizablePanel>
+    </ResizablePanelGroup>
   );
 };
 

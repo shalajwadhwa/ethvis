@@ -7,6 +7,7 @@ import { EventType } from '@/app/types/event';
 import eventEmitter from '@/app/lib/EventEmitter';
 import { MinedTransactionResponse } from '@/app/types/response';
 import EthereumApiClient from './EthereumApiClient';
+import { Utils } from 'alchemy-sdk';
 
 const DEFAULT_SHAPE = "circle";
 const CONTRACT_SHAPE = "square";
@@ -22,6 +23,9 @@ const DEFAULT_EDGE_COLOUR = 'grey';
 const SEMI_MINED_EDGE = 'green';
 // all transactions validated
 const MINED_EDGE_COLOUR = 'purple';
+
+const HIGHLIGHTED_NODE_COLOUR = 'orange';
+const HIGHLIGHTED_NODE_SIZE = 8;
 
 // todo: implement additional edge colours
 // some transactions removed
@@ -46,6 +50,8 @@ enum ATTRIBUTES {
 class GraphHandler {
   private static instance: GraphHandler;
   public sigma: Sigma<Attributes, EdgeType>;
+  public highlightNode: string | null = null;
+  private originalNodeAttributes: { color?: string, size?: number } = {};
 
   public constructor(sigma: Sigma<Attributes, EdgeType>) {
     this.sigma = sigma;
@@ -67,7 +73,7 @@ class GraphHandler {
 
   public getNodeAttributes(node: string): Attributes | undefined {
     const graph: Graph = this.sigma.getGraph();
-    if (!graph) {
+    if (!graph || !node ||!graph.hasNode(node)) {
       return;
     }
 
@@ -83,21 +89,54 @@ class GraphHandler {
     graph.clear();
   }
 
-  public async updateGraph(tx: Transaction, remove: boolean = false): Promise<void> {
-    if (remove) {
-      await this.removeTransaction(tx);
-    } else {
-      await this.addTransaction(tx);
-    }
-  }
-
-  private async addTransaction(tx: Transaction): Promise<void> {
-    await this.mempoolUpdate(tx);
-
+  public selectNode(node: string | null): void {
     const graph: Graph = this.sigma.getGraph();
     if (!graph) {
       return;
     }
+
+    if (this.highlightNode && graph.hasNode(this.highlightNode)) {      
+      if (this.originalNodeAttributes.color) {
+        // todo: update node with new colour if new transactions have been received in the mempool
+        graph.setNodeAttribute(this.highlightNode, "color", this.originalNodeAttributes.color);
+      }
+
+      if (this.originalNodeAttributes.size !== undefined) {
+        graph.setNodeAttribute(this.highlightNode, "size", this.originalNodeAttributes.size);
+      }
+    }
+
+    this.originalNodeAttributes = {};
+    this.highlightNode = null;
+
+    if (node !== null && graph.hasNode(node)) {
+      const nodeAttrs = graph.getNodeAttributes(node);
+      this.originalNodeAttributes = {
+        color: nodeAttrs.color,
+        size: nodeAttrs.size
+      };
+            
+      graph.setNodeAttribute(node, "color", HIGHLIGHTED_NODE_COLOUR);
+      graph.setNodeAttribute(node, "size", HIGHLIGHTED_NODE_SIZE);
+      this.highlightNode = node;
+    }
+  }
+
+  public async updateGraph(tx: Transaction, remove: boolean = false): Promise<void> {
+    const graph: Graph = this.sigma.getGraph();
+    if (!graph) {
+      return;
+    }
+
+    if (!remove) {
+      await this.addTransaction(graph, tx);
+    } else {
+      await this.removeTransaction(graph, tx);
+    }
+  }
+
+  private async addTransaction(graph: Graph, tx: Transaction): Promise<void> {
+    await this.mempoolUpdate(graph, tx);
 
     const edge = graph.hasEdge(tx.from, tx.to);
     if (edge) {
@@ -114,28 +153,23 @@ class GraphHandler {
     }
   }
 
-  private async mempoolUpdate(tx: Transaction, remove: boolean = false): Promise<void> {
+  private async mempoolUpdate(graph: Graph, tx: Transaction, remove: boolean = false): Promise<void> {
     if (!remove) {
-      await this.addNodesFromTransaction(tx);
+      await this.addNodesFromTransaction(graph, tx);
     }
 
     // todo: fix ghost nodes issue (nodes without transactions)
-    this.updateNodesFromTransaction(tx, remove);
+    this.updateNodesFromTransaction(graph, tx, remove);
   }
 
-  private updateNodesFromTransaction(tx: Transaction, remove: boolean = false) {
+  private updateNodesFromTransaction(graph:Graph, tx: Transaction, remove: boolean = false) {
     const reverse_tx_multiplier = remove ? -1 : 1;
 
-    this.updateNode(tx.to, -Number(tx.value) * reverse_tx_multiplier, remove);
-    this.updateNode(tx.from, Number(tx.value) * reverse_tx_multiplier, remove);
+    this.updateNode(graph, tx.to, -parseFloat(Utils.formatEther(tx.value)) * reverse_tx_multiplier, remove);
+    this.updateNode(graph, tx.from, parseFloat(Utils.formatEther(tx.value)) * reverse_tx_multiplier, remove);
   }
 
-  private addNode(node: string, attributes: Attributes): void {
-    const graph: Graph = this.sigma.getGraph();
-    if (!graph) {
-      return;
-    }
-
+  private addNode(graph: Graph, node: string, attributes: Attributes): void {
     const colour = attributes.isContract ? CONTRACT_COLOUR : DEFAULT_COLOUR;
     const shape = attributes.isContract ? CONTRACT_SHAPE : DEFAULT_SHAPE;
     attributes.color = colour;
@@ -147,24 +181,14 @@ class GraphHandler {
     }
   }
 
-  private removeNode(node: string): void {
-    const graph: Graph = this.sigma.getGraph();
-    if (!graph) {
-      return;
-    }
-
+  private removeNode(graph: Graph, node: string): void {
     if (graph.hasNode(node)) {
       graph.dropNode(node);
     }
   }
 
-  private async removeTransaction(tx: Transaction): Promise<void> {
-    await this.mempoolUpdate(tx, true);
-
-    const graph: Graph = this.sigma.getGraph();
-    if (!graph) {
-      return;
-    }
+  private async removeTransaction(graph: Graph, tx: Transaction): Promise<void> {
+    await this.mempoolUpdate(graph, tx, true);
 
     const edge = graph.hasEdge(tx.from, tx.to);
     if (edge) {
@@ -187,12 +211,7 @@ class GraphHandler {
     }
   }
 
-  private setNodeColour(node: string, colour: string): void {
-    const graph: Graph = this.sigma.getGraph();
-    if (!graph) {
-      return;
-    }
-
+  private setNodeColour(graph: Graph, node: string, colour: string): void {
     if (graph.hasNode(node)) {
       graph.setNodeAttribute(node, 'color', colour);
     }
@@ -200,19 +219,14 @@ class GraphHandler {
 
   // todo: fix types
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  private updateNodeAttribute(node: string, attribute: string, value: any): void {
-    const graph: Graph = this.sigma.getGraph();
-    if (!graph) {
-      return;
-    }
-
+  private updateNodeAttribute(graph: Graph, node: string, attribute: string, value: any): void {
     if (graph.hasNode(node)) {
       graph.setNodeAttribute(node, attribute, value);
     }
   }
 
-  private updateNodeColour(node: string, netBalance: number): void {
-    const isContract = this.sigma.getGraph().getNodeAttribute(node, 'isContract');
+  private updateNodeColour(graph: Graph, node: string, netBalance: number): void {
+    const isContract = graph.getNodeAttribute(node, 'isContract');
     if (isContract) {
       return;
     }
@@ -223,7 +237,7 @@ class GraphHandler {
         interval = NUM_COLOUR_BINS - 1;
       }
       const colour = positiveScale[interval] ? positiveScale[interval].hexString() : POSITIVE_COLOUR;
-      this.setNodeColour(node, colour);
+      this.setNodeColour(graph, node, colour);
     }
     else if (netBalance < 0) {
       let interval = Math.floor(-netBalance / BIN_INTERVAL);
@@ -231,7 +245,7 @@ class GraphHandler {
         interval = NUM_COLOUR_BINS - 1;
       }
       const colour = negativeScale[interval] ? negativeScale[interval].hexString() : NEGATIVE_COLOUR;
-      this.setNodeColour(node, colour);
+      this.setNodeColour(graph, node, colour);
     }
     else {
       return;
@@ -268,16 +282,12 @@ class GraphHandler {
     }
   }
 
-  private async addNodesFromTransaction(tx: Transaction): Promise<void> {
-    await this.addNewAddress(tx.from);
-    await this.addNewAddress(tx.to, true);
+  private async addNodesFromTransaction(graph: Graph, tx: Transaction): Promise<void> {
+    await this.addNewAddress(graph, tx.from);
+    await this.addNewAddress(graph, tx.to, true);
   }
 
-  private async addNewAddress(address: string, isTo=false): Promise<void> {
-    if (this.sigma.getGraph().hasNode(address)) {
-        return;
-    }
-
+  private async addNewAddress(graph: Graph, address: string, isTo=false): Promise<void> {
     const nodeAttributes: AddressInfoResponse | null = await EthereumApiClient.getInstance().getInfo(address)
       .then(
         (response) => response)
@@ -299,7 +309,7 @@ class GraphHandler {
     );
 
     const attributes: Attributes = this.simplifyAttributes(address, nodeAttributes, isContract);
-    this.addNode(address, attributes);
+    this.addNode(graph, address, attributes);
   }
 
   private simplifyAttributes(address: string, response: AddressInfoResponse | null, isContract: boolean): Attributes {
@@ -326,7 +336,7 @@ class GraphHandler {
     return result;
   }
 
-  private updateNode(node: string, value: number, remove: boolean): void {
+  private updateNode(graph:Graph, node: string, value: number, remove: boolean): void {
     const attributes: Attributes | undefined = this.getNodeAttributes(node);
     
     if (!attributes) return;
@@ -334,13 +344,13 @@ class GraphHandler {
     attributes.numTransactions += remove ? -1 : 1;
     
     if (attributes.numTransactions === 0) {
-        this.removeNode(node);
+        this.removeNode(graph, node);
         return;
     }
     
     const newBalance = attributes.netBalance + value;
-    this.updateNodeAttribute(node, 'netBalance', newBalance);
-    this.updateNodeColour(node, newBalance);
+    this.updateNodeAttribute(graph, node, 'netBalance', newBalance);
+    this.updateNodeColour(graph, node, newBalance);
     // todo: emit event to update top nodes
     eventEmitter.emit("topNodes", node);
   }
