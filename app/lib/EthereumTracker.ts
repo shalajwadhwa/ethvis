@@ -8,12 +8,14 @@ const MAX_MEMPOOL_SIZE = 200;
 
 class EthereumTracker {
     private mempool: Transaction[];
+    private numTransactions: number;
     private topNodesTracker: TopNodesTracker;
     private visualisationType: string;
     private graphHandler: GraphHandler;
 
     constructor(graphHandler: GraphHandler) {
         this.mempool = [];
+        this.numTransactions = 0;
         this.topNodesTracker = new TopNodesTracker();
         this.visualisationType = 'default';
         this.graphHandler = graphHandler;
@@ -30,14 +32,20 @@ class EthereumTracker {
 
     private async append(tx: Transaction) {
         this.mempool.push(tx);
+        this.numTransactions += 1;
         await this.graphHandler.updateGraph(tx);
     
         if (this.mempool.length >= MAX_MEMPOOL_SIZE) {
           const toRemove = this.mempool.shift();
           if (toRemove) {
               await this.graphHandler.updateGraph(toRemove, true);
+              this.numTransactions -= 1;
           }
         }
+    }
+
+    public getNumTransactions() {
+        return this.numTransactions;
     }
 
     public changeVisualisation(type: string) {

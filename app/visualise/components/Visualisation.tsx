@@ -41,7 +41,6 @@ const Visualisation = ({ visualisationType, setVisualisationType } : { visualisa
     if (sigma && !graphHandlerInitialized) {
       graphHandlerRef.current = new GraphHandler(sigma);
       
-      // Initialize EthereumTracker with the GraphHandler instance
       if (!ethereumTrackerRef.current) {
         ethereumTrackerRef.current = new EthereumTracker(graphHandlerRef.current);
       }
@@ -95,7 +94,7 @@ const Visualisation = ({ visualisationType, setVisualisationType } : { visualisa
 
           <VisualisationSelector setVisualisationType={setVisualisationType} />
 
-          {sigma && <GraphInfo sigma={sigma} />}
+          {sigma && ethereumTrackerRef.current && <GraphInfo sigma={sigma} ethereumTracker={ethereumTrackerRef.current}/>}
           
           <ModeToggle />
         </ResizablePanel>
