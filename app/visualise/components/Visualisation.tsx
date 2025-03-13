@@ -25,9 +25,10 @@ import GraphHandler from "@/app/lib/GraphHandler";
 const Visualisation = ({ visualisationType, setVisualisationType } : { visualisationType : string, setVisualisationType: React.Dispatch<React.SetStateAction<string>> }) => {
   const [sigma, setSigma] = useState<Sigma<Attributes, EdgeType> | null>(null);
   const client = useRef(EthereumApiClient.getInstance());
-  const ethereumTracker = useRef(EthereumTracker.getInstance());
+  const graphHandlerRef = useRef<GraphHandler | null>(null);
   const [hoveredNode, setHoveredNode] = useState<string | null>(null);
   const [graphHandlerInitialized, setGraphHandlerInitialized] = useState(false);
+  const ethereumTrackerRef = useRef<EthereumTracker | null>(null);
 
   const sigmaSettings = {
     nodeProgramClasses: {
@@ -38,16 +39,22 @@ const Visualisation = ({ visualisationType, setVisualisationType } : { visualisa
 
   useEffect(() => {
     if (sigma && !graphHandlerInitialized) {
-      new GraphHandler(sigma);
+      graphHandlerRef.current = new GraphHandler(sigma);
+      
+      // Initialize EthereumTracker with the GraphHandler instance
+      if (!ethereumTrackerRef.current) {
+        ethereumTrackerRef.current = new EthereumTracker(graphHandlerRef.current);
+      }
+      
       setGraphHandlerInitialized(true);
       console.log("GraphHandler initialized with sigma instance");
     }
   }, [sigma, graphHandlerInitialized]);
 
   useEffect(() => {
-    if (!sigma || !graphHandlerInitialized) return;
+    if (!sigma || !graphHandlerInitialized || !ethereumTrackerRef.current) return;
     
-    ethereumTracker.current.changeVisualisation(visualisationType);
+    ethereumTrackerRef.current.changeVisualisation(visualisationType);
 
     if (visualisationType === "default") {
       client.current.subscribeToPendingTransactions();
@@ -61,10 +68,10 @@ const Visualisation = ({ visualisationType, setVisualisationType } : { visualisa
   }, [sigma, graphHandlerInitialized, visualisationType]);
 
   useEffect(() => {
-    if (!sigma || !graphHandlerInitialized) return;
+    if (!sigma || !graphHandlerInitialized || !graphHandlerRef.current) return;
     
     try {
-      GraphHandler.getInstance().selectNode(hoveredNode);
+      graphHandlerRef.current.selectNode(hoveredNode);
     } catch (error) {
       console.error("Error selecting node:", error);
     }
@@ -81,7 +88,10 @@ const Visualisation = ({ visualisationType, setVisualisationType } : { visualisa
             <Fa2Graph setHoveredNode={setHoveredNode} />
           </SigmaContainer>
 
-          <NodeAttributes hoveredNode={hoveredNode} ethereumTracker={ethereumTracker.current}/>
+          <NodeAttributes 
+            hoveredNode={hoveredNode} 
+            ethereumTracker={ethereumTrackerRef.current} 
+          />
 
           <VisualisationSelector setVisualisationType={setVisualisationType} />
 
@@ -93,7 +103,10 @@ const Visualisation = ({ visualisationType, setVisualisationType } : { visualisa
         <ResizableHandle withHandle />
 
       <ResizablePanel defaultSize={20}>
-        <SidePanel ethereumTracker={ethereumTracker.current} setHoveredNode={setHoveredNode} />
+        <SidePanel 
+          ethereumTracker={ethereumTrackerRef.current} 
+          setHoveredNode={setHoveredNode} 
+        />
       </ResizablePanel>
     </ResizablePanelGroup>
   );

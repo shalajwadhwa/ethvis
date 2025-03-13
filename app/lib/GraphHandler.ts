@@ -48,29 +48,19 @@ enum ATTRIBUTES {
 }
 
 class GraphHandler {
-  private static instance: GraphHandler;
   public sigma: Sigma<Attributes, EdgeType>;
   public highlightNode: string | null = null;
   private originalNodeAttributes: { color?: string, size?: number } = {};
 
   public constructor(sigma: Sigma<Attributes, EdgeType>) {
     this.sigma = sigma;
-    GraphHandler.instance = this;
-
+    
     eventEmitter.on(
       EventType.NewMinedTransaction,
       (response) => this.colourMinedTransaction(response)
     )
     // todo: create event type
     eventEmitter.on("staticVisualisation", (tx) => this.updateGraph(tx));
-  }
-
-  public static getInstance(): GraphHandler {
-    if (!GraphHandler.instance) {
-      throw new Error('GraphHandler not instantiated');
-    }
-
-    return GraphHandler.instance;
   }
 
   public getNodeAttributes(node: string): Attributes | undefined {
