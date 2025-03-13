@@ -192,16 +192,16 @@ class GraphHandler {
   }
 
   private removeNode(graph: Graph, node: string): void {
-    const isContract = graph.getNodeAttribute(node, 'isContract');
-    if (isContract) {
-      this.contractExecutions -= 1;
-    }
-
     if (graph.hasNode(node)) {
-      graph.dropNode(node);
+      const isContract = graph.getNodeAttribute(node, 'isContract');
+      
       if (isContract) {
+        const numExecutions = graph.getNodeAttribute(node, 'numTransactions');
         this.numContracts -= 1;
+        this.contractExecutions -= numExecutions;
       }
+
+      graph.dropNode(node);
     }
   }
 
