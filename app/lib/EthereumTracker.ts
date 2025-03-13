@@ -3,12 +3,11 @@ import GraphHandler from '@/app/lib/GraphHandler';
 import eventEmitter from '@/app/lib/EventEmitter';
 import { Transaction } from '@/app/types/transaction';
 import { EventType } from '@/app/types/event';
-import { Mutex } from 'async-mutex';
 import Sigma from 'sigma';
 import { Attributes, EdgeType } from '@/app/types/graph';
 
 // TODO: use mempoool for static visualisation with infinite size
-const MAX_MEMPOOL_SIZE = 200;
+const MAX_MEMPOOL_SIZE = 2000;
 
 class EthereumTracker {
     private mempool: Transaction[];
@@ -16,7 +15,6 @@ class EthereumTracker {
     private topNodesTracker: TopNodesTracker;
     private visualisationType: string;
     private graphHandler: GraphHandler;
-    private lock = new Mutex();
 
     constructor(sigma:  Sigma<Attributes, EdgeType>) {
         this.mempool = [];
@@ -36,7 +34,6 @@ class EthereumTracker {
     }
 
     private async append(tx: Transaction) {
-        const release = await this.lock.acquire();
         this.mempool.push(tx);
         this.numTransactions += 1;
         await this.graphHandler.updateGraph(tx);
@@ -48,7 +45,6 @@ class EthereumTracker {
               this.numTransactions -= 1;
           }
         }
-        release();
     }
 
     public selectNode(node: string | null) {
