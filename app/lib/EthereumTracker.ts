@@ -7,7 +7,6 @@ import { EventType } from '@/app/types/event';
 const MAX_MEMPOOL_SIZE = 200;
 
 class EthereumTracker {
-    private static instance: EthereumTracker;
     private mempool: Transaction[];
     private topNodesTracker: TopNodesTracker;
     private visualisationType: string;
@@ -27,16 +26,6 @@ class EthereumTracker {
             "topNodes",
             (node) => this.updateTopNodes(node)
         )
-        
-        EthereumTracker.instance = this;
-    }
-
-    public static getInstance(): EthereumTracker {
-        if (!EthereumTracker.instance) {
-            throw new Error('EthereumTracker not instantiated');
-        }
-
-        return EthereumTracker.instance;
     }
 
     private async append(tx: Transaction) {
