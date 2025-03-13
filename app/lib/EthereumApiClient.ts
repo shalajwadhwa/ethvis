@@ -4,7 +4,6 @@ import eventEmitter from "@/app/lib/EventEmitter";
 import { EventType } from "@/app/types/event";
 import { AddressInfoResponse } from "@/app/types/graph";
 import { MinedTransactionResponse } from "@/app/types/response";
-import GraphHandler from "@/app/lib/GraphHandler";
 
 const ALCHEMY_API_KEY = process.env.NEXT_PUBLIC_ALCHEMY_API_KEY;
 const ETH_LABELS_URL = 'http://localhost:3001/labels/'
@@ -155,7 +154,8 @@ class EthereumApiClient {
                 console.log(`Emitting ${block.transactions.length} transactions from block ${blockNumber}`);
                 
                 for (const transaction of block.transactions) {
-                    await GraphHandler.getInstance().updateGraph(transaction as unknown as Transaction);
+                    // todo: replace with event
+                    eventEmitter.emit("staticVisualisation", transaction as unknown as Transaction);
                 }
             }
         } catch (error) {

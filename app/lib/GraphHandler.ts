@@ -61,6 +61,8 @@ class GraphHandler {
       EventType.NewMinedTransaction,
       (response) => this.colourMinedTransaction(response)
     )
+    // todo: create event type
+    eventEmitter.on("staticVisualisation", (tx) => this.updateGraph(tx));
   }
 
   public static getInstance(): GraphHandler {
