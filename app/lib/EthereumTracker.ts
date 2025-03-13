@@ -3,6 +3,7 @@ import GraphHandler from '@/app/lib/GraphHandler';
 import eventEmitter from '@/app/lib/EventEmitter';
 import { Transaction } from '@/app/types/transaction';
 import { EventType } from '@/app/types/event';
+import { Mutex } from 'async-mutex';
 
 const MAX_MEMPOOL_SIZE = 200;
 
@@ -12,6 +13,7 @@ class EthereumTracker {
     private topNodesTracker: TopNodesTracker;
     private visualisationType: string;
     private graphHandler: GraphHandler;
+    private lock = new Mutex();
 
     constructor(graphHandler: GraphHandler) {
         this.mempool = [];
@@ -31,6 +33,7 @@ class EthereumTracker {
     }
 
     private async append(tx: Transaction) {
+        const release = await this.lock.acquire();
         this.mempool.push(tx);
         this.numTransactions += 1;
         await this.graphHandler.updateGraph(tx);
@@ -42,6 +45,7 @@ class EthereumTracker {
               this.numTransactions -= 1;
           }
         }
+        release();
     }
 
     public getNumTransactions() {
