@@ -51,6 +51,8 @@ class GraphHandler {
   public sigma: Sigma<Attributes, EdgeType>;
   public highlightNode: string | null = null;
   private originalNodeAttributes: { color?: string, size?: number } = {};
+  private numContracts: number = 0;
+  private contractExecutions: number = 0;
 
   constructor(sigma: Sigma<Attributes, EdgeType>) {
     this.sigma = sigma;
@@ -79,6 +81,14 @@ class GraphHandler {
     }
 
     graph.clear();
+  }
+
+  public getNumContracts(): number {
+    return this.numContracts;
+  }
+
+  public getContractExecutions(): number {
+    return this.contractExecutions
   }
 
   public selectNode(node: string | null): void {
@@ -168,14 +178,30 @@ class GraphHandler {
     attributes.type = shape;
     attributes.size = 4;
 
+    if (attributes.isContract) {
+      this.contractExecutions += 1;
+    }
+    
     if (!graph.hasNode(node)) {
       graph.addNode(node, { x: Math.random(), y: Math.random(), ...attributes });
+      
+      if (attributes.isContract) {
+        this.numContracts += 1;
+      }
     }
   }
 
   private removeNode(graph: Graph, node: string): void {
+    const isContract = graph.getNodeAttribute(node, 'isContract');
+    if (isContract) {
+      this.contractExecutions -= 1;
+    }
+
     if (graph.hasNode(node)) {
       graph.dropNode(node);
+      if (isContract) {
+        this.numContracts -= 1;
+      }
     }
   }
 

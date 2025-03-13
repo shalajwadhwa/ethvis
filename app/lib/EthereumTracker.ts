@@ -48,6 +48,14 @@ class EthereumTracker {
         return this.numTransactions;
     }
 
+    public getNumContracts() {
+        return this.graphHandler.getNumContracts();
+    }
+
+    public getNumContractExecutions() {
+        return this.graphHandler.getContractExecutions();
+    }
+
     public changeVisualisation(type: string) {
         if (type !== this.visualisationType) {
             this.graphHandler.resetHandler();
