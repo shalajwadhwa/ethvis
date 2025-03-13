@@ -280,25 +280,8 @@ class GraphHandler {
   }
 
   private async addNewAddress(graph: Graph, address: string, isTo=false): Promise<void> {
-    const nodeAttributes: AddressInfoResponse | null = await EthereumApiClient.getInstance().getInfo(address)
-      .then(
-        (response) => response)
-      .catch(
-        (error) => {
-            console.log("Error fetching address info", error);
-            return null;
-        }
-    );
-
-    const isContract = isTo && await EthereumApiClient.getInstance().isCode(address)
-      .then(
-        (response) => response !== '0x' ? true : false)
-      .catch(
-        (error) => {
-            console.log("Error fetching contract info", error);
-            return false;
-        }
-    );
+    const nodeAttributes: AddressInfoResponse | null = await EthereumApiClient.getInstance().getInfo(address);
+    const isContract: boolean = isTo && await EthereumApiClient.getInstance().isCode(address) || false;
 
     const attributes: Attributes = this.simplifyAttributes(address, nodeAttributes, isContract);
     this.addNode(graph, address, attributes);

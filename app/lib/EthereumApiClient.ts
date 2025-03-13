@@ -30,8 +30,6 @@ class EthereumApiClient {
     }
 
     public subscribeToPendingTransactions() {
-        console.log('Attempting to subscribe to pending transactions...');
-
         this.alchemy.ws.on(
             {
                 method: AlchemySubscription.PENDING_TRANSACTIONS
@@ -50,7 +48,6 @@ class EthereumApiClient {
     }
 
     public subscribeToMinedTransactions() {
-        console.log('Attempting to subscribe to mined transactions...');
         this.alchemy.ws.on(
             {
                 method: AlchemySubscription.MINED_TRANSACTIONS
@@ -59,6 +56,7 @@ class EthereumApiClient {
                 eventEmitter.emit(EventType.NewMinedTransaction, response as MinedTransactionResponse);
             }
         );
+
         console.log('Subscribed to mined transactions');
     }
 
@@ -67,8 +65,14 @@ class EthereumApiClient {
         console.log('Unsubscribed from mined transactions');
     }
 
-    public isCode(address: string): Promise<string> {
-        return this.alchemy.core.getCode(address);
+    public isCode(address: string): Promise<boolean | void> {
+        return this.alchemy.core.getCode(address)
+            .then(
+                response => response !== '0x' ? true : false
+            )
+            .catch(
+                error => console.log("Error fetching code", error)
+            );
     }
 
     public getInfo(address: string): Promise<AddressInfoResponse> {
@@ -91,8 +95,6 @@ class EthereumApiClient {
             if (!this.validateBlockRange(startBlock, endBlock)) {
                 return;
             }
-
-            console.log(`Processing blocks from ${startBlock} to ${endBlock}`);
             
             for (let i = startBlock; i < endBlock; i++) {
                 await this.processBlock(i);
@@ -114,7 +116,6 @@ class EthereumApiClient {
             );
             
             const data = await response.json();
-            console.log(`${directionLabel} block response:`, data, data.data[0].block.number);
             
             if (!data || !data.data || !data.data[0] || !data.data[0].block || !data.data[0].block.number) {
                 throw new Error(`Could not determine ${directionLabel.toLowerCase()} block from API response`);
