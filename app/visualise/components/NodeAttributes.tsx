@@ -12,9 +12,9 @@ const NodeAttributes = ({
   ethereumTracker,
 }: {
   hoveredNode: string | null;
-  ethereumTracker: EthereumTracker;
+  ethereumTracker: EthereumTracker | null;
 }) => {
-  if (!hoveredNode) {
+  if (!ethereumTracker || !hoveredNode) {
     return null;
   }
 

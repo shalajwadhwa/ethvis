@@ -15,6 +15,8 @@ export type AddressInfo = {
 export type AddressInfoResponse = AddressInfo[];
 
 export type Attributes = {
+  x?: number;
+  y?: number;
   address: string;
   label?: Set<string>;
   name?: Set<string>;
@@ -24,14 +26,15 @@ export type Attributes = {
   netBalance: number;
   isContract: boolean;
   numTransactions: number;
+  size?: number;
+  color?: string;
+  type?: string;
+  highlighted?: boolean;
 }
 
-export type NodeType = {
-  x: number;
-  y: number;
-  label: string;
-  size: number;
-  isContract: boolean;
+export type EdgeType = { 
+  label?: string;
+  color: string;
+  pendingTx: string[];
+  minedTx: string[];
 };
-
-export type EdgeType = { label: string };

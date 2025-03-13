@@ -12,33 +12,6 @@ export interface NewMinedTransactionEvent {
     response: MinedTransactionResponse;
 }
 
-export interface AddAddressToGraphEvent {
-    type: EventType.AddAddressToGraph;
-    address: string;
-    isContract: boolean;
-}
-
-export interface RemoveAddressFromGraphEvent {
-    type: EventType.RemoveAddressFromGraph;
-    address: string;
-}
-
-export interface AddTransactionToGraphEvent {
-    type: EventType.AddTransactionToGraph;
-    tx: Transaction;
-}
-
-export interface RemoveTransactionFromGraphEvent {
-    type: EventType.RemoveTransactionFromGraph;
-    tx: Transaction;
-}
-
-export interface UpdateNodeNetBalanceEvent {
-    type: EventType.UpdateNodeNetBalance;
-    node: string;
-    netBalance: number;
-}
-
 export interface NewTopNodeEvent {
     type: EventType.NewTopNode;
     topNodes: Attributes[];
@@ -52,10 +25,5 @@ export enum MempoolUpdateEventType {
 export enum EventType {
     NewPendingTransaction = 'newPendingTransactions',
     NewMinedTransaction = 'newMinedTransaction',
-    AddAddressToGraph = 'addAddressToGraph',
-    AddTransactionToGraph = 'addTransactionToGraph',
-    RemoveTransactionFromGraph = 'removeTransactionFromGraph',
-    RemoveAddressFromGraph = 'removeAddressFromGraph',
-    UpdateNodeNetBalance = 'updateNodeNetBalance',
     NewTopNode = 'newTopNode',
 }

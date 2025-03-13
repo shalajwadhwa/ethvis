@@ -72,7 +72,6 @@ class EthereumApiClient {
     }
 
     public getInfo(address: string): Promise<AddressInfoResponse> {
-        console.log('Fetching address info for', address);
         return fetch(`${ETH_LABELS_URL}${address}`)
             .then(
                 response => response.json()
@@ -80,6 +79,88 @@ class EthereumApiClient {
             .catch(
                 error => console.log("Error fetching address info", error)
             );
+    }
+
+    public async getTransactionsFromRange(startDate: string, endDate: string): Promise<void> {
+        try {
+            const [startBlock, endBlock] = await Promise.all([
+                this.getBlockNumberFromTimestamp(startDate, 'BEFORE'),
+                this.getBlockNumberFromTimestamp(endDate, 'AFTER')
+            ]);
+            
+            if (!this.validateBlockRange(startBlock, endBlock)) {
+                return;
+            }
+
+            console.log(`Processing blocks from ${startBlock} to ${endBlock}`);
+            
+            for (let i = startBlock; i < endBlock; i++) {
+                await this.processBlock(i);
+                await new Promise(resolve => setTimeout(resolve, 100));
+            }
+        } catch (error) {
+            console.error("Error in getBlocksFromDates:", error);
+        }
+    }
+
+    private async getBlockNumberFromTimestamp(timestamp: string, direction: 'BEFORE' | 'AFTER'): Promise<number> {
+        const options = {method: 'GET', headers: {accept: 'application/json'}};
+        const directionLabel = direction === 'BEFORE' ? 'Start' : 'End';
+        
+        try {
+            const response = await fetch(
+                `https://api.g.alchemy.com/data/v1/${ALCHEMY_API_KEY}/utility/blocks/by-timestamp?networks=eth-mainnet&timestamp=${timestamp}&direction=${direction}`, 
+                options
+            );
+            
+            const data = await response.json();
+            console.log(`${directionLabel} block response:`, data, data.data[0].block.number);
+            
+            if (!data || !data.data || !data.data[0] || !data.data[0].block || !data.data[0].block.number) {
+                throw new Error(`Could not determine ${directionLabel.toLowerCase()} block from API response`);
+            }
+            
+            return parseInt(data.data[0].block.number);
+        } catch (error) {
+            console.error(`Error fetching ${directionLabel.toLowerCase()} block:`, error);
+            throw error;
+        }
+    }
+
+    private validateBlockRange(start: number | undefined, end: number | undefined): boolean {
+        if (!start || !end) {
+            console.error("Invalid block range: start or end block is undefined");
+            return false;
+        }
+        
+        if (end <= start) {
+            console.error("Invalid block range: end block must be greater than start block");
+            return false;
+        }
+        
+        const blockCount = end - start;
+        if (blockCount > 1000) {
+            console.warn(`Large block range (${blockCount} blocks) may cause performance issues`);
+        }
+        
+        return true;
+    }
+
+    private async processBlock(blockNumber: number): Promise<void> {
+        try {
+            const block = await this.alchemy.core.getBlockWithTransactions(blockNumber);
+            
+            if (block && block.transactions) {
+                console.log(`Emitting ${block.transactions.length} transactions from block ${blockNumber}`);
+                
+                for (const transaction of block.transactions) {
+                    // todo: replace with event
+                    eventEmitter.emit("staticVisualisation", transaction as unknown as Transaction);
+                }
+            }
+        } catch (error) {
+            console.log(`Error fetching block ${blockNumber}:`, error);
+        }
     }
 }
 
