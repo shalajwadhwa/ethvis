@@ -52,7 +52,7 @@ class GraphHandler {
   public highlightNode: string | null = null;
   private originalNodeAttributes: { color?: string, size?: number } = {};
 
-  public constructor(sigma: Sigma<Attributes, EdgeType>) {
+  constructor(sigma: Sigma<Attributes, EdgeType>) {
     this.sigma = sigma;
     
     eventEmitter.on(
