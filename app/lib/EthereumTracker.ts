@@ -58,7 +58,7 @@ class EthereumTracker {
     }
 
     public updateTopNodes(node: string) {
-        // todo: drop nodes when they are no longer in the graph
+        // TODO: drop nodes when they are no longer in the graph
         const nodeAttributes = this.graphHandler.getNodeAttributes(node);
         if (!nodeAttributes) {
             return;

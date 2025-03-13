@@ -154,7 +154,7 @@ class EthereumApiClient {
                 console.log(`Emitting ${block.transactions.length} transactions from block ${blockNumber}`);
                 
                 for (const transaction of block.transactions) {
-                    // todo: replace with event
+                    // TODO: replace with event
                     eventEmitter.emit("staticVisualisation", transaction as unknown as Transaction);
                     await new Promise(resolve => setTimeout(resolve, 10));
                 }

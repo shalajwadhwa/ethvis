@@ -27,7 +27,7 @@ const MINED_EDGE_COLOUR = 'purple';
 const HIGHLIGHTED_NODE_COLOUR = 'orange';
 const HIGHLIGHTED_NODE_SIZE = 8;
 
-// todo: implement additional edge colours
+// TODO: implement additional edge colours
 // some transactions removed
 // const SEMI_REMOVED_EDGE = 'red';
 // all transactions removed - flicker node
@@ -59,7 +59,7 @@ class GraphHandler {
       EventType.NewMinedTransaction,
       (response) => this.colourMinedTransaction(response)
     )
-    // todo: create event type
+    // TODO: create event type
     eventEmitter.on("staticVisualisation", (tx) => this.updateGraph(tx));
   }
 
@@ -89,7 +89,7 @@ class GraphHandler {
 
     if (this.highlightNode && graph.hasNode(this.highlightNode)) {      
       if (this.originalNodeAttributes.color) {
-        // todo: update node with new colour if new transactions have been received in the mempool
+        // TODO: update node with new colour if new transactions have been received in the mempool
         graph.setNodeAttribute(this.highlightNode, "color", this.originalNodeAttributes.color);
       }
 
@@ -150,7 +150,7 @@ class GraphHandler {
       await this.addNodesFromTransaction(graph, tx);
     }
 
-    // todo: fix ghost nodes issue (nodes without transactions)
+    // TODO: fix ghost nodes issue (nodes without transactions)
     this.updateNodesFromTransaction(graph, tx, remove);
   }
 
@@ -209,7 +209,7 @@ class GraphHandler {
     }
   }
 
-  // todo: fix types
+  // TODO: fix types
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private updateNodeAttribute(graph: Graph, node: string, attribute: string, value: any): void {
     if (graph.hasNode(node)) {
@@ -344,7 +344,7 @@ class GraphHandler {
     const newBalance = attributes.netBalance + value;
     this.updateNodeAttribute(graph, node, 'netBalance', newBalance);
     this.updateNodeColour(graph, node, newBalance);
-    // todo: emit event to update top nodes
+    // TODO: emit event to update top nodes
     eventEmitter.emit("topNodes", node);
   }
 }
