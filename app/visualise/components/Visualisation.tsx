@@ -19,17 +19,14 @@ import {
 import GraphInfo from "@/app/visualise/components/GraphInfo";
 import { NodeSquareProgram } from "@sigma/node-square";
 import VisualisationSelector from "@/app/visualise/components/VisualisationSelector";
-import GraphHandler from "@/app/lib/GraphHandler";
 
 
 const Visualisation = ({ visualisationType, setVisualisationType } : { visualisationType : string, setVisualisationType: React.Dispatch<React.SetStateAction<string>> }) => {
   const [sigma, setSigma] = useState<Sigma<Attributes, EdgeType> | null>(null);
   const client = useRef(EthereumApiClient.getInstance());
-  const graphHandlerRef = useRef<GraphHandler | null>(null);
+  const [ethereumTracker, setEthereumTracker] = useState<EthereumTracker | null>(null);
   const [hoveredNode, setHoveredNode] = useState<string | null>(null);
-  const [graphHandlerInitialized, setGraphHandlerInitialized] = useState(false);
-  const ethereumTrackerRef = useRef<EthereumTracker | null>(null);
-
+  
   const sigmaSettings = {
     nodeProgramClasses: {
       square: NodeSquareProgram,
@@ -38,22 +35,16 @@ const Visualisation = ({ visualisationType, setVisualisationType } : { visualisa
   };
 
   useEffect(() => {
-    if (sigma && !graphHandlerInitialized) {
-      graphHandlerRef.current = new GraphHandler(sigma);
-      
-      if (!ethereumTrackerRef.current) {
-        ethereumTrackerRef.current = new EthereumTracker(graphHandlerRef.current);
-      }
-      
-      setGraphHandlerInitialized(true);
-      console.log("GraphHandler initialized with sigma instance");
+    if (sigma && !ethereumTracker) {
+      setEthereumTracker(new EthereumTracker(sigma));
+      console.log("EthereumTracker initialised with sigma instance");
     }
-  }, [sigma, graphHandlerInitialized]);
+  }, [sigma, ethereumTracker]);
 
   useEffect(() => {
-    if (!sigma || !graphHandlerInitialized || !ethereumTrackerRef.current) return;
+    if (!sigma || !ethereumTracker) return;
     
-    ethereumTrackerRef.current.changeVisualisation(visualisationType);
+    ethereumTracker.changeVisualisation(visualisationType);
 
     if (visualisationType === "default") {
       client.current.subscribeToPendingTransactions();
@@ -64,17 +55,14 @@ const Visualisation = ({ visualisationType, setVisualisationType } : { visualisa
       client.current.unsubscribeFromMinedTransactions();
       client.current.getTransactionsFromRange("1740152891", "1740153251");
     }
-  }, [sigma, graphHandlerInitialized, visualisationType]);
+  }, [sigma, ethereumTracker, visualisationType]);
 
   useEffect(() => {
-    if (!sigma || !graphHandlerInitialized || !graphHandlerRef.current) return;
-    
-    try {
-      graphHandlerRef.current.selectNode(hoveredNode);
-    } catch (error) {
-      console.error("Error selecting node:", error);
-    }
-  }, [sigma, graphHandlerInitialized, hoveredNode]);
+    if (!sigma || !ethereumTracker) return;
+
+    ethereumTracker.selectNode(hoveredNode);
+
+  }, [sigma, ethereumTracker, hoveredNode]);
 
   return (
       <ResizablePanelGroup direction="horizontal">
@@ -87,26 +75,30 @@ const Visualisation = ({ visualisationType, setVisualisationType } : { visualisa
             <Fa2Graph setHoveredNode={setHoveredNode} />
           </SigmaContainer>
 
-          <NodeAttributes 
-            hoveredNode={hoveredNode} 
-            ethereumTracker={ethereumTrackerRef.current} 
-          />
+          {ethereumTracker && (
+            <NodeAttributes 
+              hoveredNode={hoveredNode} 
+              ethereumTracker={ethereumTracker} 
+            />
+          )}
 
           <VisualisationSelector setVisualisationType={setVisualisationType} />
 
-          {sigma && ethereumTrackerRef.current && <GraphInfo sigma={sigma} ethereumTracker={ethereumTrackerRef.current}/>}
+          {sigma && ethereumTracker && <GraphInfo sigma={sigma} ethereumTracker={ethereumTracker}/>}
           
           <ModeToggle />
         </ResizablePanel>
 
         <ResizableHandle withHandle />
 
-      <ResizablePanel defaultSize={20}>
-        <SidePanel 
-          ethereumTracker={ethereumTrackerRef.current} 
-          setHoveredNode={setHoveredNode} 
-        />
-      </ResizablePanel>
+        <ResizablePanel defaultSize={20}>
+          {ethereumTracker && (
+            <SidePanel 
+              ethereumTracker={ethereumTracker} 
+              setHoveredNode={setHoveredNode} 
+            />
+          )}
+        </ResizablePanel>
     </ResizablePanelGroup>
   );
 };
