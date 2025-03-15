@@ -1,9 +1,6 @@
-import { Transaction } from "@/app/types/transaction";
 import { Alchemy, Network, AlchemySubscription } from "alchemy-sdk"
 import eventEmitter from "@/app/lib/EventEmitter";
-import { EventType } from "@/app/types/event";
-import { AddressInfoResponse } from "@/app/types/graph";
-import { MinedTransactionResponse } from "@/app/types/response";
+import { EventType, Transaction, MinedTransactionResponse, AddressInfoResponse } from "@/app/types/";
 
 const ALCHEMY_API_KEY = process.env.NEXT_PUBLIC_ALCHEMY_API_KEY;
 const ETH_LABELS_URL = 'http://localhost:3001/labels/'

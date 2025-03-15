@@ -6,7 +6,7 @@ import "@react-sigma/core/lib/style.css";
 import Sigma from "sigma";
 import EthereumTracker from "@/app/lib/EthereumTracker";
 import "@/app/visualise/style.css";
-import { Attributes, EdgeType } from "@/app/types/graph";
+import { Attributes, EdgeType } from "@/app/types/";
 import NodeAttributes from "@/app/visualise/components/NodeAttributes";
 import Fa2Graph from "@/app/visualise/components/Fa2Graph";
 import SidePanel from "@/app/visualise/components/SidePanel";

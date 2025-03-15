@@ -1,9 +1,8 @@
 import { Separator } from "@/components/ui/separator";
 import React, { useEffect, useState } from "react";
 import Sigma from "sigma";
-import { Attributes, EdgeType } from "@/app/types/graph";
+import { Attributes, EdgeType, EventType } from "@/app/types/";
 import eventEmitter from "@/app/lib/EventEmitter";
-import { EventType } from "@/app/types/event";
 import EthereumTracker from "@/app/lib/EthereumTracker";
 
 const GraphInfo = ({ sigma, ethereumTracker }: { sigma: Sigma<Attributes, EdgeType>, ethereumTracker: EthereumTracker }) => {

@@ -1,10 +1,8 @@
 import TopNodesTracker from '@/app/lib/TopNodesTracker';
 import GraphHandler from '@/app/lib/GraphHandler';
 import eventEmitter from '@/app/lib/EventEmitter';
-import { Transaction } from '@/app/types/transaction';
-import { EventType } from '@/app/types/event';
+import { Transaction, EventType, Attributes, EdgeType } from '@/app/types/';
 import Sigma from 'sigma';
-import { Attributes, EdgeType } from '@/app/types/graph';
 
 // TODO: use mempoool for static visualisation with infinite size
 const MAX_MEMPOOL_SIZE = 2000;

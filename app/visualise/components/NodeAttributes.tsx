@@ -6,7 +6,7 @@ import {
   CardTitle,
   CardContent,
 } from "@/components/ui/card";
-import { Attributes } from "@/app/types/graph";
+import { Attributes } from "@/app/types/";
 
 const NodeAttributes = ({
   hoveredNode,

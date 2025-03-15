@@ -1,6 +1,5 @@
-import { Attributes } from '@/app/types/graph';
+import { Attributes, EventType } from '@/app/types/';
 import eventEmitter from '@/app/lib/EventEmitter';
-import { EventType } from '@/app/types/event';
 
 const TOP_NODES_SIZE = 20;
 

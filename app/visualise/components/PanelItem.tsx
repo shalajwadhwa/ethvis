@@ -1,5 +1,5 @@
 import React from "react";
-import { Attributes } from "@/app/types/graph";
+import { Attributes } from "@/app/types/";
 
 const PanelItem = ({
   attributes,

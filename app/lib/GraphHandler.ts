@@ -1,11 +1,8 @@
 import Graph from 'graphology';
-import { Transaction } from '@/app/types/transaction';
 import Sigma from 'sigma';
-import { AddressInfo, AddressInfoResponse, Attributes, EdgeType } from '@/app/types/graph';
+import { Transaction, EventType, MinedTransactionResponse, AddressInfo, AddressInfoResponse, Attributes, EdgeType } from '@/app/types/';
 import Values from 'values.js';
-import { EventType } from '@/app/types/event';
 import eventEmitter from '@/app/lib/EventEmitter';
-import { MinedTransactionResponse } from '@/app/types/response';
 import EthereumApiClient from './EthereumApiClient';
 import { Utils } from 'alchemy-sdk';
 
