@@ -1,5 +1,5 @@
 import Sigma from 'sigma';
-import { eventEmitter, GraphHandler, TopNodesTracker } from '@/app/lib/';
+import { eventEmitter, GraphHandler } from '@/app/lib/';
 import { Transaction, EventType, Attributes, EdgeType } from '@/app/types/';
 
 // TODO: use mempoool for static visualisation with infinite size
@@ -8,24 +8,18 @@ const MAX_MEMPOOL_SIZE = 2000;
 export class EthereumTracker {
     private mempool: Transaction[];
     private numTransactions: number;
-    private topNodesTracker: TopNodesTracker;
     private visualisationType: string;
     private graphHandler: GraphHandler;
 
     constructor(sigma:  Sigma<Attributes, EdgeType>) {
         this.mempool = [];
         this.numTransactions = 0;
-        this.topNodesTracker = new TopNodesTracker();
         this.visualisationType = 'default';
         this.graphHandler = new GraphHandler(sigma);
 
         eventEmitter.on(
             EventType.NewPendingTransaction,
             (tx) => this.append(tx)
-        )
-        eventEmitter.on(
-            "topNodes",
-            (node) => this.updateTopNodes(node)
         )
     }
 
@@ -63,7 +57,6 @@ export class EthereumTracker {
         if (type !== this.visualisationType) {
             this.graphHandler.resetHandler();
             this.mempool = [];
-            this.topNodesTracker.resetTracker();
             this.visualisationType = type;
             this.numTransactions = 0;
         }
@@ -74,16 +67,6 @@ export class EthereumTracker {
     }
 
     public getTopNodes() {
-        return this.topNodesTracker.getTopNodes();
-    }
-
-    public updateTopNodes(node: string) {
-        // TODO: drop nodes when they are no longer in the graph
-        const nodeAttributes = this.graphHandler.getNodeAttributes(node);
-        if (!nodeAttributes) {
-            return;
-        }
-
-        this.topNodesTracker.updateTopNodes(nodeAttributes);
+        return this.graphHandler.getTopNodes();
     }
 }

@@ -2,7 +2,7 @@ import Graph from 'graphology';
 import Sigma from 'sigma';
 import { Transaction, EventType, MinedTransactionResponse, AddressInfo, AddressInfoResponse, Attributes, EdgeType } from '@/app/types/';
 import Values from 'values.js';
-import { eventEmitter, EthereumApiClient } from '@/app/lib/';
+import { eventEmitter, EthereumApiClient, TopNodesTracker } from '@/app/lib/';
 import { Utils } from 'alchemy-sdk';
 
 const DEFAULT_SHAPE = "circle";
@@ -49,6 +49,7 @@ export class GraphHandler {
   private originalNodeAttributes: { color?: string, size?: number } = {};
   private numContracts: number = 0;
   private contractExecutions: number = 0;
+  private topNodes: TopNodesTracker = new TopNodesTracker();
 
   constructor(sigma: Sigma<Attributes, EdgeType>) {
     this.sigma = sigma;
@@ -76,10 +77,24 @@ export class GraphHandler {
       return;
     }
 
+    this.topNodes.resetTracker();
     graph.clear();
     this.numContracts = 0;
     this.contractExecutions = 0;
   }
+
+  public getTopNodes(): Attributes[] {
+    return this.topNodes.getTopNodes();
+  }
+
+  private updateTopNodes(node: string): void {
+    const nodeAttributes = this.getNodeAttributes(node);
+    if (!nodeAttributes) {
+        return;
+    }
+
+    this.topNodes.updateTopNodes(nodeAttributes);
+}
 
   public getNumContracts(): number {
     return this.numContracts;
@@ -222,7 +237,7 @@ export class GraphHandler {
         graph.setEdgeAttribute(tx.from, tx.to, 'pendingTx', pendingTx);
         graph.setEdgeAttribute(tx.from, tx.to, 'minedTx', minedTx);
       }
-      // todo: flicker when trying to remove a pending transaction?
+      // TODO: flicker when trying to remove a pending transaction?
     }
   }
 
@@ -298,8 +313,12 @@ export class GraphHandler {
   }
 
   private async addNodesFromTransaction(graph: Graph, tx: Transaction): Promise<void> {
-    await this.addNewAddress(graph, tx.from);
-    await this.addNewAddress(graph, tx.to, true);
+    if (!graph.hasNode(tx.from)) {
+      await this.addNewAddress(graph, tx.from);
+    }
+    if (!graph.hasNode(tx.to)) {
+      await this.addNewAddress(graph, tx.to, true);
+    }
   }
 
   private async addNewAddress(graph: Graph, address: string, isTo=false): Promise<void> {
@@ -350,7 +369,6 @@ export class GraphHandler {
     const newBalance = attributes.netBalance + value;
     this.updateNodeAttribute(graph, node, 'netBalance', newBalance);
     this.updateNodeColour(graph, node, newBalance);
-    // TODO: emit event to update top nodes
-    eventEmitter.emit("topNodes", node);
+    this.updateTopNodes(node)
   }
 }
