@@ -1,10 +1,9 @@
 "use client";
 import React, { useState, useEffect, useRef } from "react";
-import EthereumApiClient from "@/app/lib/EthereumApiClient";
+import { EthereumApiClient, EthereumTracker } from "@/app/lib/";
 import { SigmaContainer } from "@react-sigma/core";
 import "@react-sigma/core/lib/style.css";
 import Sigma from "sigma";
-import EthereumTracker from "@/app/lib/EthereumTracker";
 import "@/app/visualise/style.css";
 import { Attributes, EdgeType } from "@/app/types/";
 import NodeAttributes from "@/app/visualise/components/NodeAttributes";

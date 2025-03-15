@@ -1,11 +1,11 @@
 import { Alchemy, Network, AlchemySubscription } from "alchemy-sdk"
-import eventEmitter from "@/app/lib/EventEmitter";
+import { eventEmitter } from "@/app/lib/";
 import { EventType, Transaction, MinedTransactionResponse, AddressInfoResponse } from "@/app/types/";
 
 const ALCHEMY_API_KEY = process.env.NEXT_PUBLIC_ALCHEMY_API_KEY;
 const ETH_LABELS_URL = 'http://localhost:3001/labels/'
 
-class EthereumApiClient {
+export class EthereumApiClient {
     private static instance: EthereumApiClient;
     private alchemy: Alchemy;
 
@@ -162,5 +162,3 @@ class EthereumApiClient {
         }
     }
 }
-
-export default EthereumApiClient;

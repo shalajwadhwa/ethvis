@@ -1,13 +1,11 @@
-import TopNodesTracker from '@/app/lib/TopNodesTracker';
-import GraphHandler from '@/app/lib/GraphHandler';
-import eventEmitter from '@/app/lib/EventEmitter';
-import { Transaction, EventType, Attributes, EdgeType } from '@/app/types/';
 import Sigma from 'sigma';
+import { eventEmitter, GraphHandler, TopNodesTracker } from '@/app/lib/';
+import { Transaction, EventType, Attributes, EdgeType } from '@/app/types/';
 
 // TODO: use mempoool for static visualisation with infinite size
 const MAX_MEMPOOL_SIZE = 2000;
 
-class EthereumTracker {
+export class EthereumTracker {
     private mempool: Transaction[];
     private numTransactions: number;
     private topNodesTracker: TopNodesTracker;
@@ -89,5 +87,3 @@ class EthereumTracker {
         this.topNodesTracker.updateTopNodes(nodeAttributes);
     }
 }
-
-export default EthereumTracker;

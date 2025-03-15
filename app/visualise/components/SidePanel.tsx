@@ -1,4 +1,4 @@
-import EthereumTracker from "@/app/lib/EthereumTracker";
+import { EthereumTracker } from "@/app/lib/";
 import eventEmitter from "@/app/lib/EventEmitter";
 import { EventType, Attributes } from "@/app/types/";
 import React, { useEffect, useState } from "react";

@@ -2,8 +2,7 @@ import Graph from 'graphology';
 import Sigma from 'sigma';
 import { Transaction, EventType, MinedTransactionResponse, AddressInfo, AddressInfoResponse, Attributes, EdgeType } from '@/app/types/';
 import Values from 'values.js';
-import eventEmitter from '@/app/lib/EventEmitter';
-import EthereumApiClient from './EthereumApiClient';
+import { eventEmitter, EthereumApiClient } from '@/app/lib/';
 import { Utils } from 'alchemy-sdk';
 
 const DEFAULT_SHAPE = "circle";
@@ -44,7 +43,7 @@ enum ATTRIBUTES {
   SYMBOL = 'symbol',
 }
 
-class GraphHandler {
+export class GraphHandler {
   public sigma: Sigma<Attributes, EdgeType>;
   public highlightNode: string | null = null;
   private originalNodeAttributes: { color?: string, size?: number } = {};
@@ -355,5 +354,3 @@ class GraphHandler {
     eventEmitter.emit("topNodes", node);
   }
 }
-
-export default GraphHandler

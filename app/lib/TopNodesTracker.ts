@@ -1,9 +1,9 @@
 import { Attributes, EventType } from '@/app/types/';
-import eventEmitter from '@/app/lib/EventEmitter';
+import { eventEmitter } from '@/app/lib/';
 
 const TOP_NODES_SIZE = 20;
 
-class TopNodesTracker {
+export class TopNodesTracker {
     private topNodes: Attributes[] = [];
     private topNodeThreshold: number = 0;
 
@@ -48,5 +48,3 @@ class TopNodesTracker {
         }
     }
 }
-
-export default TopNodesTracker;
