@@ -68,7 +68,7 @@ class EthereumApiClient {
     public isCode(address: string): Promise<boolean | void> {
         return this.alchemy.core.getCode(address)
             .then(
-                response => response !== '0x' ? true : false
+                response => response !== '0x'
             )
             .catch(
                 error => console.log("Error fetching code", error)
