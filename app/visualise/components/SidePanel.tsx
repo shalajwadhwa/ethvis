@@ -2,7 +2,7 @@ import { EthereumTracker } from "@/app/lib/";
 import eventEmitter from "@/app/lib/EventEmitter";
 import { EventType, Attributes } from "@/app/types/";
 import React, { useEffect, useState } from "react";
-import PanelItem from "@/app/visualise/components/PanelItem";
+import { PanelItem } from "@/app/visualise/components/";
 import { ScrollArea } from "@/components/ui/scroll-area";
 
 const SidePanel = ({

@@ -6,18 +6,14 @@ import "@react-sigma/core/lib/style.css";
 import Sigma from "sigma";
 import "@/app/visualise/style.css";
 import { Attributes, EdgeType } from "@/app/types/";
-import NodeAttributes from "@/app/visualise/components/NodeAttributes";
-import Fa2Graph from "@/app/visualise/components/Fa2Graph";
-import SidePanel from "@/app/visualise/components/SidePanel";
+import { NodeAttributes, Fa2Graph, SidePanel, GraphInfo, VisualisationSelector } from "@/app/visualise/components/";
 import { ModeToggle } from "@/components/ui/theme-toggle";
 import {
   ResizableHandle,
   ResizablePanel,
   ResizablePanelGroup,
 } from "@/components/ui/resizable";
-import GraphInfo from "@/app/visualise/components/GraphInfo";
 import { NodeSquareProgram } from "@sigma/node-square";
-import VisualisationSelector from "@/app/visualise/components/VisualisationSelector";
 
 
 const Visualisation = ({ visualisationType, setVisualisationType } : { visualisationType : string, setVisualisationType: React.Dispatch<React.SetStateAction<string>> }) => {
