@@ -10,7 +10,7 @@ import { Attributes, EdgeType } from "@/app/types/graph";
 import NodeAttributes from "@/app/visualise/components/NodeAttributes";
 import Fa2Graph from "@/app/visualise/components/Fa2Graph";
 import SidePanel from "@/app/visualise/components/SidePanel";
-import { ModeToggle } from "@/app/components/theme-toggle";
+import { ModeToggle } from "@/components/ui/theme-toggle";
 import {
   ResizableHandle,
   ResizablePanel,
