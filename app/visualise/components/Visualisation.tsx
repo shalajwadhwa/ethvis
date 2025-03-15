@@ -92,6 +92,7 @@ const Visualisation = ({ visualisationType, setVisualisationType } : { visualisa
                 <Button 
                   onClick={() => setIsRunning(!isRunning)}
                   variant={isRunning ? "destructive" : "default"}
+                  className="transition-colors"
                 >
                     {isRunning ? "Stop Visualisation" : "Start Visualisation"}
                 </Button>
