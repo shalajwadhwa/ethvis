@@ -13,20 +13,14 @@ const CONTRACT_COLOUR = 'blue';
 const NEGATIVE_COLOUR = 'red';
 const POSITIVE_COLOUR = 'green';
 
-// no transactions validated
 const DEFAULT_EDGE_COLOUR = 'grey';
-// some transactions validated
 const SEMI_MINED_EDGE = 'green';
-// all transactions validated
 const MINED_EDGE_COLOUR = 'purple';
+const SEMI_REMOVED_EDGE = 'red';
 
 const HIGHLIGHTED_NODE_COLOUR = 'orange';
+const DEFAULT_NODE_SIZE = 4;
 const HIGHLIGHTED_NODE_SIZE = 8;
-
-// TODO: implement additional edge colours
-// some transactions removed
-// const SEMI_REMOVED_EDGE = 'red';
-// all transactions removed - flicker node
 
 const NUM_COLOUR_BINS = 5;
 const MAX_TRANSACTION_VALUE = 4 * 1e18;
@@ -46,7 +40,6 @@ enum ATTRIBUTES {
 export class GraphHandler {
   public sigma: Sigma<Attributes, EdgeType>;
   public highlightNode: string | null = null;
-  private originalNodeAttributes: { color?: string, size?: number } = {};
   private numContracts: number = 0;
   private contractExecutions: number = 0;
   private topNodes: TopNodesTracker = new TopNodesTracker();
@@ -111,26 +104,15 @@ export class GraphHandler {
     }
 
     if (this.highlightNode && graph.hasNode(this.highlightNode)) {      
-      if (this.originalNodeAttributes.color) {
-        // TODO: update node with new colour if new transactions have been received in the mempool
-        graph.setNodeAttribute(this.highlightNode, "color", this.originalNodeAttributes.color);
-      }
+      const attributes = graph.getNodeAttributes(this.highlightNode);
 
-      if (this.originalNodeAttributes.size !== undefined) {
-        graph.setNodeAttribute(this.highlightNode, "size", this.originalNodeAttributes.size);
-      }
+      this.updateNodeColour(graph, this.highlightNode, attributes.netBalance);
+      graph.setNodeAttribute(this.highlightNode, "size", DEFAULT_NODE_SIZE);
     }
 
-    this.originalNodeAttributes = {};
     this.highlightNode = null;
 
-    if (node !== null && graph.hasNode(node)) {
-      const nodeAttrs = graph.getNodeAttributes(node);
-      this.originalNodeAttributes = {
-        color: nodeAttrs.color,
-        size: nodeAttrs.size
-      };
-            
+    if (node !== null && graph.hasNode(node)) {            
       graph.setNodeAttribute(node, "color", HIGHLIGHTED_NODE_COLOUR);
       graph.setNodeAttribute(node, "size", HIGHLIGHTED_NODE_SIZE);
       this.highlightNode = node;
@@ -156,6 +138,11 @@ export class GraphHandler {
     const edge = graph.hasEdge(tx.from, tx.to);
     if (edge) {
       const attributes = graph.getEdgeAttributes(tx.from, tx.to);
+
+      if (attributes.containsRejectedTx) {
+        return;
+      }
+
       attributes.pendingTx.push(tx.hash);
       graph.setEdgeAttribute(tx.from, tx.to, 'pendingTx', attributes.pendingTx);
 
@@ -247,14 +234,6 @@ export class GraphHandler {
     }
   }
 
-  // TODO: fix types
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  private updateNodeAttribute(graph: Graph, node: string, attribute: string, value: any): void {
-    if (graph.hasNode(node)) {
-      graph.setNodeAttribute(node, attribute, value);
-    }
-  }
-
   private updateNodeColour(graph: Graph, node: string, netBalance: number): void {
     const isContract = graph.getNodeAttribute(node, 'isContract');
     if (isContract) {
@@ -284,6 +263,7 @@ export class GraphHandler {
 
   private colourMinedTransaction(response: MinedTransactionResponse): void {
     const tx = response.transaction;
+    const isRemoved = response.isRemoved;
 
     const graph: Graph = this.sigma.getGraph();
     if (!graph) {
@@ -292,6 +272,11 @@ export class GraphHandler {
 
     const edge = graph.hasEdge(tx.from, tx.to);
     if (edge) {
+      if (isRemoved) {
+        graph.setEdgeAttribute(tx.from, tx.to, 'containsRejectedTx', true);
+        graph.setEdgeAttribute(tx.from, tx.to, 'color', SEMI_REMOVED_EDGE);
+      }
+
       const attributes = graph.getEdgeAttributes(tx.from, tx.to);
       const minedTx = attributes.minedTx;
       const pendingTx = attributes.pendingTx;
@@ -367,7 +352,7 @@ export class GraphHandler {
     }
     
     const newBalance = attributes.netBalance + value;
-    this.updateNodeAttribute(graph, node, 'netBalance', newBalance);
+    graph.setNodeAttribute(node, 'netBalance', newBalance);
     this.updateNodeColour(graph, node, newBalance);
     this.updateTopNodes(node)
   }

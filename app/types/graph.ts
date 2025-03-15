@@ -37,4 +37,5 @@ export type EdgeType = {
   color: string;
   pendingTx: string[];
   minedTx: string[];
+  containsRejectedTx?: boolean;
 };
