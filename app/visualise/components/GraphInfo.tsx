@@ -25,7 +25,7 @@ const GraphInfo = ({ sigma, ethereumTracker }: { sigma: Sigma<Attributes, EdgeTy
     }
     , [sigma, ethereumTracker]);
   return (
-    <div className="absolute bottom-4 left-4 z-10 graph-overlay">
+    <div className="graph-overlay">
       <div className="p-2.5 border rounded-md row-auto">
         <div className="flex h-5 items-center space-x-4 text-sm">
           <div>Nodes: {nodes}</div>

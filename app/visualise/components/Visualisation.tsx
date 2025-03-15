@@ -7,7 +7,8 @@ import Sigma from "sigma";
 import "@/app/visualise/style.css";
 import { Attributes, EdgeType } from "@/app/types/";
 import { NodeAttributes, Fa2Graph, SidePanel, GraphInfo, VisualisationSelector } from "@/app/visualise/components/";
-import { ModeToggle } from "@/components/ui/theme-toggle";
+import { ThemeToggle } from "@/components/ui/theme-toggle";
+import { Button } from "@/components/ui/button";
 import {
   ResizableHandle,
   ResizablePanel,
@@ -21,6 +22,7 @@ const Visualisation = ({ visualisationType, setVisualisationType } : { visualisa
   const client = useRef(EthereumApiClient.getInstance());
   const [ethereumTracker, setEthereumTracker] = useState<EthereumTracker | null>(null);
   const [hoveredNode, setHoveredNode] = useState<string | null>(null);
+  const [isRunning, setIsRunning] = useState<boolean>(false);
   
   const sigmaSettings = {
     nodeProgramClasses: {
@@ -41,23 +43,18 @@ const Visualisation = ({ visualisationType, setVisualisationType } : { visualisa
     
     ethereumTracker.changeVisualisation(visualisationType);
 
-    if (visualisationType === "default") {
-      client.current.subscribeToPendingTransactions();
-      client.current.subscribeToMinedTransactions();
-    }
-    else if (visualisationType === "static") {
+    if (!isRunning) {
       client.current.unsubscribeFromPendingTransactions();
       client.current.unsubscribeFromMinedTransactions();
-      client.current.getTransactionsFromRange("1740152891", "1740153251");
+    } else {
+      if (visualisationType === "default") {
+        client.current.subscribeToPendingTransactions();
+        client.current.subscribeToMinedTransactions();
+      } else if (visualisationType === "static") {
+        client.current.getTransactionsFromRange("1740152891", "1740153251");
+      }
     }
-  }, [sigma, ethereumTracker, visualisationType]);
-
-  useEffect(() => {
-    if (!sigma || !ethereumTracker) return;
-
-    ethereumTracker.selectNode(hoveredNode);
-
-  }, [sigma, ethereumTracker, hoveredNode]);
+  }, [sigma, ethereumTracker, visualisationType, isRunning]);
 
   return (
       <ResizablePanelGroup direction="horizontal">
@@ -79,9 +76,29 @@ const Visualisation = ({ visualisationType, setVisualisationType } : { visualisa
 
           <VisualisationSelector setVisualisationType={setVisualisationType} />
 
-          {sigma && ethereumTracker && <GraphInfo sigma={sigma} ethereumTracker={ethereumTracker}/>}
-          
-          <ModeToggle />
+          <div className="absolute bottom-4 left-0 right-0 z-10 px-4 flex flex-col">
+            <div className="flex justify-between items-center">
+              <div></div>
+              <div>
+                <ThemeToggle />
+              </div>
+            </div>
+
+            <div className="flex justify-between items-center">
+              <div>
+                {sigma && ethereumTracker && <GraphInfo sigma={sigma} ethereumTracker={ethereumTracker}/>}
+              </div>
+              <div>
+                <Button 
+                  onClick={() => setIsRunning(!isRunning)}
+                  variant={isRunning ? "destructive" : "default"}
+                >
+                    {isRunning ? "Stop Visualisation" : "Start Visualisation"}
+                </Button>
+              </div>
+            </div>
+          </div>
+
         </ResizablePanel>
 
         <ResizableHandle withHandle />
@@ -89,8 +106,7 @@ const Visualisation = ({ visualisationType, setVisualisationType } : { visualisa
         <ResizablePanel defaultSize={20}>
           {ethereumTracker && (
             <SidePanel 
-              ethereumTracker={ethereumTracker} 
-              setHoveredNode={setHoveredNode} 
+              ethereumTracker={ethereumTracker}
             />
           )}
         </ResizablePanel>

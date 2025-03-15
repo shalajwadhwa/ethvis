@@ -6,7 +6,7 @@ const PanelItem = ({
   setHoveredNode,
 }: {
   attributes: Attributes;
-  setHoveredNode: React.Dispatch<React.SetStateAction<string | null>>;
+  setHoveredNode: (nodeAddress: string | null) => void;
 }) => {
   const attributesToShow = [
     "address",

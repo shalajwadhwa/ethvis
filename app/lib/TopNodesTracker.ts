@@ -14,6 +14,7 @@ export class TopNodesTracker {
     public resetTracker(): void {
         this.topNodes = [];
         this.topNodeThreshold = 0;
+        eventEmitter.emit(EventType.NewTopNode, this.topNodes);
     }
 
     private appendTopNodes(nodeAttributes: Attributes): void {

@@ -7,10 +7,8 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 
 const SidePanel = ({
   ethereumTracker,
-  setHoveredNode,
 }: {
-  ethereumTracker: EthereumTracker | null;
-  setHoveredNode: React.Dispatch<React.SetStateAction<string | null>>;
+  ethereumTracker: EthereumTracker;
 }) => {
   const [nodes, setNodes] = useState(ethereumTracker ? ethereumTracker.getTopNodes() : []);
 
@@ -33,7 +31,7 @@ const SidePanel = ({
         <ul>
           {Array.from(nodes.values()).map((node: Attributes, index: number) => (
             <li key={index} className="py-1.5">
-              <PanelItem attributes={node as Attributes} setHoveredNode={setHoveredNode}/>
+              <PanelItem attributes={node as Attributes} setHoveredNode={(node: string | null) => ethereumTracker.selectNode(node)}/>
             </li>
           ))}
         </ul>
