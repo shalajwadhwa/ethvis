@@ -43,38 +43,34 @@ const Visualisation = ({ visualisationType, setVisualisationType } : { visualisa
     
     ethereumTracker.changeVisualisation(visualisationType);
 
-    if (!isRunning) {
-      client.current.unsubscribeFromPendingTransactions();
-      client.current.unsubscribeFromMinedTransactions();
-    } else {
+    if (isRunning) {
       if (visualisationType === "default") {
         client.current.subscribeToPendingTransactions();
         client.current.subscribeToMinedTransactions();
       } else if (visualisationType === "static") {
+        client.current.setHalt(false);
         client.current.getTransactionsFromRange("1740152891", "1740153251");
       }
+    } 
+    else {
+      client.current.setHalt(true);
+      client.current.unsubscribeFromPendingTransactions();
+      client.current.unsubscribeFromMinedTransactions();
     }
   }, [sigma, ethereumTracker, visualisationType, isRunning]);
 
   return (
       <ResizablePanelGroup direction="horizontal">
         <ResizablePanel defaultSize={80} className="relative">
-          <SigmaContainer<Attributes, EdgeType> 
-            ref={setSigma} 
-            settings={sigmaSettings} 
-            className="w-full h-screen"
-          >
+          <SigmaContainer<Attributes, EdgeType> ref={setSigma} settings={sigmaSettings} className="w-full h-screen">
             <Fa2Graph setHoveredNode={setHoveredNode} />
           </SigmaContainer>
 
           {ethereumTracker && (
-            <NodeAttributes 
-              hoveredNode={hoveredNode} 
-              ethereumTracker={ethereumTracker} 
-            />
+            <NodeAttributes hoveredNode={hoveredNode} ethereumTracker={ethereumTracker} />
           )}
 
-          <VisualisationSelector setVisualisationType={setVisualisationType} />
+          <VisualisationSelector visualisationType={visualisationType} setVisualisationType={setVisualisationType} />
 
           <div className="absolute bottom-4 left-0 right-0 z-10 px-4 flex flex-col">
             <div className="flex justify-between items-center">
@@ -86,7 +82,7 @@ const Visualisation = ({ visualisationType, setVisualisationType } : { visualisa
 
             <div className="flex justify-between items-center">
               <div>
-                {sigma && ethereumTracker && <GraphInfo sigma={sigma} ethereumTracker={ethereumTracker}/>}
+                {ethereumTracker && <GraphInfo ethereumTracker={ethereumTracker}/>}
               </div>
               <div>
                 <Button 
@@ -105,11 +101,7 @@ const Visualisation = ({ visualisationType, setVisualisationType } : { visualisa
         <ResizableHandle withHandle />
 
         <ResizablePanel defaultSize={20}>
-          {ethereumTracker && (
-            <SidePanel 
-              ethereumTracker={ethereumTracker}
-            />
-          )}
+          {ethereumTracker && <SidePanel ethereumTracker={ethereumTracker} />}
         </ResizablePanel>
     </ResizablePanelGroup>
   );

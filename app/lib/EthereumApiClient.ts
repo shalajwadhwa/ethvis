@@ -8,6 +8,7 @@ const ETH_LABELS_URL = 'http://localhost:3001/labels/'
 export class EthereumApiClient {
     private static instance: EthereumApiClient;
     private alchemy: Alchemy;
+    private halt: boolean = false;
 
     constructor() {
         const settings = {
@@ -24,6 +25,10 @@ export class EthereumApiClient {
         }
 
         return EthereumApiClient.instance;
+    }
+
+    public setHalt(halt: boolean) {
+        this.halt = halt;
     }
 
     public subscribeToPendingTransactions() {
@@ -94,8 +99,12 @@ export class EthereumApiClient {
             }
             
             for (let i = startBlock; i < endBlock; i++) {
+                if (this.halt) {
+                    console.log("Halting block processing");
+                    return;
+                }
                 await this.processBlock(i);
-                await new Promise(resolve => setTimeout(resolve, 100));
+                await new Promise(resolve => setTimeout(resolve, 50));
             }
         } catch (error) {
             console.error("Error in getBlocksFromDates:", error);
@@ -153,6 +162,10 @@ export class EthereumApiClient {
                 
                 for (const transaction of block.transactions) {
                     // TODO: replace with event
+                    if (this.halt) {
+                        console.log("Halting block processing");
+                        return;
+                    }
                     eventEmitter.emit("staticVisualisation", transaction as unknown as Transaction);
                     await new Promise(resolve => setTimeout(resolve, 10));
                 }

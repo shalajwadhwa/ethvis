@@ -1,10 +1,9 @@
 import { Separator } from "@/components/ui/separator";
 import React, { useEffect, useState } from "react";
-import Sigma from "sigma";
-import { Attributes, EdgeType, EventType } from "@/app/types/";
+import { EventType } from "@/app/types/";
 import { EthereumTracker, eventEmitter } from "@/app/lib/";
 
-const GraphInfo = ({ sigma, ethereumTracker }: { sigma: Sigma<Attributes, EdgeType>, ethereumTracker: EthereumTracker }) => {
+const GraphInfo = ({ ethereumTracker }: { ethereumTracker: EthereumTracker }) => {
     const [nodes, setNodes] = useState<number>(0);
     const [edges, setEdges] = useState<number>(0);
     const [transactions, setTransactions] = useState<number>(0);
@@ -13,17 +12,16 @@ const GraphInfo = ({ sigma, ethereumTracker }: { sigma: Sigma<Attributes, EdgeTy
 
     useEffect(() => {
         const updateGraphInfo = () => {
-            const graph = sigma.getGraph();
-            setNodes(graph.order);
-            setEdges(graph.size);
+            setNodes(ethereumTracker.getGraphOrder());
+            setEdges(ethereumTracker.getGraphSize());
             setTransactions(ethereumTracker.getNumTransactions());
             setContracts(ethereumTracker.getNumContracts());
             setContractExecutions(ethereumTracker.getNumContractExecutions());
         };
 
-        eventEmitter.on(EventType.NewPendingTransaction, updateGraphInfo);
+        eventEmitter.on(EventType.GraphUpdate, updateGraphInfo);
     }
-    , [sigma, ethereumTracker]);
+    , [ethereumTracker]);
   return (
     <div className="graph-overlay">
       <div className="p-2.5 border rounded-md row-auto">

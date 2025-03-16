@@ -53,12 +53,20 @@ export class EthereumTracker {
         return this.graphHandler.getContractExecutions();
     }
 
+    public getGraphOrder() {
+        return this.graphHandler.getGraphOrder();
+    }
+
+    public getGraphSize() {
+        return this.graphHandler.getGraphSize();
+    }
+
     public changeVisualisation(type: string) {
         if (type !== this.visualisationType) {
-            this.graphHandler.resetHandler();
             this.mempool = [];
             this.visualisationType = type;
             this.numTransactions = 0;
+            this.graphHandler.resetHandler();
         }
     }
 

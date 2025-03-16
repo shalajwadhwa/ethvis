@@ -19,11 +19,7 @@ const SidePanel = ({
       }
     };
 
-    eventEmitter.on(EventType.NewTopNode, updateAttributes);
-    
-    return () => {
-      eventEmitter.off(EventType.NewTopNode, updateAttributes);
-    };
+    eventEmitter.on(EventType.GraphUpdate, updateAttributes);
   }, [ethereumTracker]);
 
   return (

@@ -74,10 +74,29 @@ export class GraphHandler {
     graph.clear();
     this.numContracts = 0;
     this.contractExecutions = 0;
+    eventEmitter.emit(EventType.GraphUpdate);
   }
 
   public getTopNodes(): Attributes[] {
     return this.topNodes.getTopNodes();
+  }
+
+  public getGraphOrder(): number {
+    const graph: Graph = this.sigma.getGraph();
+    if (!graph) {
+      return 0;
+    }
+
+    return graph.order;
+  }
+
+  public getGraphSize(): number {
+    const graph: Graph = this.sigma.getGraph();
+    if (!graph) {
+      return 0;
+    }
+
+    return graph.size;
   }
 
   private updateTopNodes(node: string): void {
@@ -130,6 +149,8 @@ export class GraphHandler {
     } else {
       await this.removeTransaction(graph, tx);
     }
+
+   eventEmitter.emit(EventType.GraphUpdate);
   }
 
   private async addTransaction(graph: Graph, tx: Transaction): Promise<void> {

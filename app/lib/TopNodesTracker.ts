@@ -1,5 +1,4 @@
-import { Attributes, EventType } from '@/app/types/';
-import { eventEmitter } from '@/app/lib/';
+import { Attributes } from '@/app/types/';
 
 const TOP_NODES_SIZE = 20;
 
@@ -14,7 +13,6 @@ export class TopNodesTracker {
     public resetTracker(): void {
         this.topNodes = [];
         this.topNodeThreshold = 0;
-        eventEmitter.emit(EventType.NewTopNode, this.topNodes);
     }
 
     private appendTopNodes(nodeAttributes: Attributes): void {
@@ -45,7 +43,6 @@ export class TopNodesTracker {
         if (value >= this.topNodeThreshold || this.topNodes.length < TOP_NODES_SIZE) {
             this.appendTopNodes(nodeAttributes);
             this.sortTopNodes();
-            eventEmitter.emit(EventType.NewTopNode, this.topNodes);
         }
     }
 }
