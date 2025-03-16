@@ -1,14 +1,13 @@
-import Link from "next/link";
+"use client";
+import React from 'react'
+import Visualisation from '@/app/components/Visualisation'
 
-export default function Home() {
+const VisualisePage = () => {
+  const [visualisationType, setVisualisationType] = React.useState<string>('default')
+
   return (
-    <main>
-      <div>
-        <h1>Ethereum Transactions and Pattern Visualisation</h1>
-      </div>
-      <div>
-        <Link href="/visualise"> Visualise </Link>
-      </div>
-    </main>
-  );
+    <Visualisation visualisationType={visualisationType} setVisualisationType={setVisualisationType} />
+  )
 }
+
+export default VisualisePage
