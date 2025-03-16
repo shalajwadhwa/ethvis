@@ -48,13 +48,6 @@ class GraphHandler {
 
   constructor(sigma: Sigma<Attributes, EdgeType>) {
     this.sigma = sigma;
-    
-    eventEmitter.on(
-      EventType.NewMinedTransaction,
-      (response) => this.colourMinedTransaction(response)
-    )
-    // TODO: create event type
-    eventEmitter.on("staticVisualisation", (tx) => this.updateGraph(tx));
   }
 
   public getNodeAttributes(node: string): Attributes | undefined {
@@ -247,7 +240,6 @@ class GraphHandler {
         graph.setEdgeAttribute(tx.from, tx.to, 'pendingTx', pendingTx);
         graph.setEdgeAttribute(tx.from, tx.to, 'minedTx', minedTx);
       }
-      // TODO: flicker when trying to remove a pending transaction?
     }
   }
 
@@ -284,7 +276,7 @@ class GraphHandler {
     }
   }
 
-  private colourMinedTransaction(response: MinedTransactionResponse): void {
+  public colourMinedTransaction(response: MinedTransactionResponse): void {
     const tx = response.transaction;
     const isRemoved = response.isRemoved;
 

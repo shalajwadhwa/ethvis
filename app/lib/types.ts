@@ -1,6 +1,7 @@
 export enum EventType {
   NewPendingTransaction = "newPendingTransactions",
   NewMinedTransaction = "newMinedTransaction",
+  TransactionFromBlock = "transactionFromBlock",
   GraphUpdate = "graphUpdate",
 }
 
