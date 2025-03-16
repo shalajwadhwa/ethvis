@@ -11,14 +11,21 @@ import {
 
 const VisualisationSelector = ({ 
   visualisationType, 
-  setVisualisationType 
+  setVisualisationType,
+  setIsRunning
 } : { 
   visualisationType?: string;
-  setVisualisationType: React.Dispatch<React.SetStateAction<string>> 
+  setVisualisationType: React.Dispatch<React.SetStateAction<string>>,
+  setIsRunning: React.Dispatch<React.SetStateAction<boolean>> 
 }) => {
+  const switchType = (type: string) => {
+    setVisualisationType(type);
+    setIsRunning(false);
+  }
+
   return (
     <div className="absolute top-4 right-4 z-10 graph-overlay">
-            <Select onValueChange={(value) => setVisualisationType(value)} value={visualisationType}>
+            <Select onValueChange={(value) => switchType(value)} value={visualisationType}>
               <SelectTrigger className="w">
                 <SelectValue placeholder="Settings" />
               </SelectTrigger>

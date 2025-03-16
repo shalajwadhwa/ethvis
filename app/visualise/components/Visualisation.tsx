@@ -70,7 +70,7 @@ const Visualisation = ({ visualisationType, setVisualisationType } : { visualisa
             <NodeAttributes hoveredNode={hoveredNode} ethereumTracker={ethereumTracker} />
           )}
 
-          <VisualisationSelector visualisationType={visualisationType} setVisualisationType={setVisualisationType} />
+          <VisualisationSelector visualisationType={visualisationType} setVisualisationType={setVisualisationType} setIsRunning={setIsRunning} />
 
           <div className="absolute bottom-4 left-0 right-0 z-10 px-4 flex flex-col">
             <div className="flex justify-between items-center">
