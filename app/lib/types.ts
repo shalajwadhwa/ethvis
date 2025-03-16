@@ -1,3 +1,9 @@
+export enum EventType {
+  NewPendingTransaction = "newPendingTransactions",
+  NewMinedTransaction = "newMinedTransaction",
+  GraphUpdate = "graphUpdate",
+}
+
 export type AddressInfo = {
   chainId?: string;
   address?: string;
@@ -30,12 +36,35 @@ export type Attributes = {
   color?: string;
   type?: string;
   highlighted?: boolean;
-}
+};
 
-export type EdgeType = { 
+export type EdgeType = {
   label?: string;
   color: string;
   pendingTx: string[];
   minedTx: string[];
   containsRejectedTx?: boolean;
 };
+
+export interface MinedTransactionResponse {
+  isRemoved: boolean;
+  transaction: Transaction;
+  subscription: string;
+}
+
+export interface Transaction {
+  hash: string;
+  nonce: string;
+  blockHash?: string;
+  blockNumber?: string;
+  transactionIndex?: string;
+  from: string;
+  to: string;
+  value: string;
+  gasPrice: string;
+  gas: string;
+  input: string;
+  v?: string;
+  r?: string;
+  s?: string;
+}

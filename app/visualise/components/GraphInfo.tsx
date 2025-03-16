@@ -1,7 +1,8 @@
 import { Separator } from "@/components/ui/separator";
 import React, { useEffect, useState } from "react";
-import { EventType } from "@/app/types/";
-import { EthereumTracker, eventEmitter } from "@/app/lib/";
+import { EventType } from "@/app/lib/types";
+import EthereumTracker from "@/app/lib/EthereumTracker";
+import eventEmitter from "@/app/lib/EventEmitter";
 
 const GraphInfo = ({ ethereumTracker }: { ethereumTracker: EthereumTracker }) => {
     const [nodes, setNodes] = useState<number>(0);

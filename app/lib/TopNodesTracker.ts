@@ -1,8 +1,8 @@
-import { Attributes } from '@/app/types/';
+import { Attributes } from '@/app/lib/types';
 
 const TOP_NODES_SIZE = 20;
 
-export class TopNodesTracker {
+class TopNodesTracker {
     private topNodes: Attributes[] = [];
     private topNodeThreshold: number = 0;
 
@@ -46,3 +46,5 @@ export class TopNodesTracker {
         }
     }
 }
+
+export default TopNodesTracker;

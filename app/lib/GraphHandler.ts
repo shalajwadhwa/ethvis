@@ -1,8 +1,10 @@
 import Graph from 'graphology';
 import Sigma from 'sigma';
-import { Transaction, EventType, MinedTransactionResponse, AddressInfo, AddressInfoResponse, Attributes, EdgeType } from '@/app/types/';
+import { Transaction, EventType, MinedTransactionResponse, AddressInfo, AddressInfoResponse, Attributes, EdgeType } from '@/app/lib/types';
 import Values from 'values.js';
-import { eventEmitter, EthereumApiClient, TopNodesTracker } from '@/app/lib/';
+import eventEmitter from '@/app/lib/EventEmitter';
+import EthereumApiClient from '@/app/lib/EthereumApiClient';
+import TopNodesTracker from '@/app/lib/TopNodesTracker';
 import { Utils } from 'alchemy-sdk';
 
 const DEFAULT_SHAPE = "circle";
@@ -37,7 +39,7 @@ enum ATTRIBUTES {
   SYMBOL = 'symbol',
 }
 
-export class GraphHandler {
+class GraphHandler {
   public sigma: Sigma<Attributes, EdgeType>;
   public highlightNode: string | null = null;
   private numContracts: number = 0;
@@ -378,3 +380,5 @@ export class GraphHandler {
     this.updateTopNodes(node)
   }
 }
+
+export default GraphHandler;

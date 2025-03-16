@@ -1,12 +1,12 @@
 import React from "react";
-import { EthereumTracker } from "@/app/lib/";
+import EthereumTracker from "@/app/lib/EthereumTracker";
 import {
   Card,
   CardHeader,
   CardTitle,
   CardContent,
 } from "@/components/ui/card";
-import { Attributes } from "@/app/types/";
+import { Attributes } from "@/app/lib/types";
 
 const NodeAttributes = ({
   hoveredNode,

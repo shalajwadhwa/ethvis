@@ -1,11 +1,12 @@
 "use client";
 import React, { useState, useEffect, useRef } from "react";
-import { EthereumApiClient, EthereumTracker } from "@/app/lib/";
+import EthereumApiClient from "@/app/lib/EthereumApiClient";
+import EthereumTracker from "@/app/lib/EthereumTracker";
 import { SigmaContainer } from "@react-sigma/core";
 import "@react-sigma/core/lib/style.css";
 import Sigma from "sigma";
 import "@/app/visualise/style.css";
-import { Attributes, EdgeType } from "@/app/types/";
+import { Attributes, EdgeType } from "@/app/lib/types";
 import { NodeAttributes, Fa2Graph, SidePanel, GraphInfo, VisualisationSelector } from "@/app/visualise/components/";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { Button } from "@/components/ui/button";
