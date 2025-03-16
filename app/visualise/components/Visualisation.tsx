@@ -7,7 +7,11 @@ import "@react-sigma/core/lib/style.css";
 import Sigma from "sigma";
 import "@/app/visualise/style.css";
 import { Attributes, EdgeType } from "@/app/lib/types";
-import { NodeAttributes, Fa2Graph, SidePanel, GraphInfo, VisualisationSelector } from "@/app/visualise/components/";
+import NodeAttributes from "@/app/visualise/components/NodeAttributes";
+import Fa2Graph from "@/app/visualise/components/Fa2Graph";
+import SidePanel from "@/app/visualise/components/SidePanel";
+import GraphInfo from "@/app/visualise/components/GraphInfo";
+import VisualisationSelector from "@/app/visualise/components/VisualisationSelector";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { Button } from "@/components/ui/button";
 import {
