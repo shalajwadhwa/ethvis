@@ -1,9 +1,10 @@
 "use client";
 import React from 'react'
 import Visualisation from '@/app/components/Visualisation'
+import { VisualisationType } from '@/app/lib/types';
 
 const VisualisePage = () => {
-  const [visualisationType, setVisualisationType] = React.useState<string>('default')
+  const [visualisationType, setVisualisationType] = React.useState<string>(VisualisationType.DEFAULT);
 
   return (
     <Visualisation visualisationType={visualisationType} setVisualisationType={setVisualisationType} />

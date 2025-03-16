@@ -8,6 +8,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
+import { VisualisationType } from '@/app/lib/types';
 
 const VisualisationSelector = ({ 
   visualisationType, 
@@ -32,8 +33,8 @@ const VisualisationSelector = ({
               <SelectContent>
                 <SelectGroup>
                   <SelectLabel>Settings</SelectLabel>
-                  <SelectItem value="default">Real-time (default)</SelectItem>
-                  <SelectItem value="static">Timestamp Range</SelectItem>
+                  <SelectItem value={ VisualisationType.DEFAULT }>{ VisualisationType.DEFAULT }</SelectItem>
+                  <SelectItem value={ VisualisationType.RANGE }>{ VisualisationType.RANGE }</SelectItem>
                 </SelectGroup>
               </SelectContent>
             </Select>

@@ -68,3 +68,8 @@ export interface Transaction {
   r?: string;
   s?: string;
 }
+
+export enum VisualisationType {
+  DEFAULT = "Real-time (default)",
+  RANGE = "Timestamp Range",
+}

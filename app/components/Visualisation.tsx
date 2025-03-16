@@ -6,7 +6,7 @@ import { SigmaContainer } from "@react-sigma/core";
 import "@react-sigma/core/lib/style.css";
 import Sigma from "sigma";
 import "@/app/style.css";
-import { Attributes, EdgeType } from "@/app/lib/types";
+import { Attributes, EdgeType, VisualisationType } from "@/app/lib/types";
 import NodeAttributes from "@/app/components/NodeAttributes";
 import Fa2Graph from "@/app/components/Fa2Graph";
 import SidePanel from "@/app/components/SidePanel";
@@ -49,10 +49,10 @@ const Visualisation = ({ visualisationType, setVisualisationType } : { visualisa
     ethereumTracker.changeVisualisation(visualisationType);
 
     if (isRunning) {
-      if (visualisationType === "default") {
+      if (visualisationType === VisualisationType.DEFAULT) {
         client.current.subscribeToPendingTransactions();
         client.current.subscribeToMinedTransactions();
-      } else if (visualisationType === "static") {
+      } else if (visualisationType === VisualisationType.RANGE) {
         client.current.setHalt(false);
         client.current.getTransactionsFromRange("1740152891", "1740153251");
       }
