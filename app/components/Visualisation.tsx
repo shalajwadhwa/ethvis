@@ -54,7 +54,7 @@ const Visualisation = ({ visualisationType, setVisualisationType } : { visualisa
         client.current.subscribeToMinedTransactions();
       } else if (visualisationType === VisualisationType.RANGE) {
         client.current.setHalt(false);
-        client.current.getTransactionsFromRange("1740152891", "1740153251");
+        client.current.getTransactionsFromRange("1740152890", "1740153251");
       }
     } 
     else {

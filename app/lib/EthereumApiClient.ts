@@ -1,22 +1,44 @@
-import { Alchemy, Network, AlchemySubscription } from "alchemy-sdk"
 import eventEmitter from "@/app/lib/EventEmitter";
 import { EventType, Transaction, MinedTransactionResponse, AddressInfoResponse } from "@/app/lib/types";
-
-const ALCHEMY_API_KEY = process.env.NEXT_PUBLIC_ALCHEMY_API_KEY;
-const ETH_LABELS_URL = 'http://localhost:3001/labels/'
+import { io, Socket } from "socket.io-client";
 
 class EthereumApiClient {
     private static instance: EthereumApiClient;
-    private alchemy: Alchemy;
     private halt: boolean = false;
+    private socket: Socket | null = null;
 
     constructor() {
-        const settings = {
-            apiKey: ALCHEMY_API_KEY,
-            network: Network.ETH_MAINNET,
-          };
+        const socketUrl = process.env.NEXT_PUBLIC_ETHVIS;
+        console.log(`Initializing Socket.IO client connecting to: ${socketUrl}`);
+        
+        this.socket = io(socketUrl, {
+            path: '/api/socketio',
+            transports: ['websocket', 'polling'],
+            reconnectionAttempts: 5,
+            reconnectionDelay: 1000
+        });
 
-        this.alchemy = new Alchemy(settings);
+        this.socket.on('connect', () => {
+            console.log('Connected to Socket.IO server with ID:', this.socket?.id);
+        });
+
+        this.socket.on('connect_error', (error) => {
+            console.error('Socket.IO connection error:', error);
+        });
+
+        this.socket.on('newPendingTransaction', (transaction) => {
+            console.log('Received pending transaction');
+            eventEmitter.emit(EventType.NewPendingTransaction, transaction as Transaction);
+        });
+
+        this.socket.on('newMinedTransaction', (response) => {
+            console.log('Received mined transaction');
+            eventEmitter.emit(EventType.NewMinedTransaction, response as MinedTransactionResponse);
+        });
+
+        this.socket.on('disconnect', () => {
+            console.log('Disconnected from Socket.IO server');
+        });
     }
 
     public static getInstance(): EthereumApiClient {
@@ -32,59 +54,54 @@ class EthereumApiClient {
     }
 
     public subscribeToPendingTransactions() {
-        this.alchemy.ws.on(
-            {
-                method: AlchemySubscription.PENDING_TRANSACTIONS
-            },
-            (transaction) => {
-              eventEmitter.emit(EventType.NewPendingTransaction, transaction as Transaction);
-            }
-          );
-
-        console.log('Subscribed to pending transactions');
+        if (this.socket && this.socket.connected) {
+            this.socket.emit('subscribeToPendingTransactions');
+            console.log('Subscribed to pending transactions');
+        } else {
+            console.error('Socket not connected, cannot subscribe to pending transactions');
+        }
     }
 
     public unsubscribeFromPendingTransactions() {
-        this.alchemy.ws.off({ method: AlchemySubscription.PENDING_TRANSACTIONS });
-        console.log('Unsubscribed from pending transactions');
+        if (this.socket && this.socket.connected) {
+            this.socket.emit('unsubscribeFromPendingTransactions');
+            console.log('Unsubscribed from pending transactions');
+        }
     }
 
     public subscribeToMinedTransactions() {
-        this.alchemy.ws.on(
-            {
-                method: AlchemySubscription.MINED_TRANSACTIONS
-            },
-            (response) => {
-                eventEmitter.emit(EventType.NewMinedTransaction, response as MinedTransactionResponse);
-            }
-        );
-
-        console.log('Subscribed to mined transactions');
+        if (this.socket && this.socket.connected) {
+            this.socket.emit('subscribeToMinedTransactions');
+            console.log('Subscribed to mined transactions');
+        } else {
+            console.error('Socket not connected, cannot subscribe to mined transactions');
+        }
     }
 
     public unsubscribeFromMinedTransactions() {
-        this.alchemy.ws.off({ method: AlchemySubscription.MINED_TRANSACTIONS });
-        console.log('Unsubscribed from mined transactions');
+        if (this.socket && this.socket.connected) {
+            this.socket.emit('unsubscribeFromMinedTransactions');
+            console.log('Unsubscribed from mined transactions');
+        }
     }
 
     public isCode(address: string): Promise<boolean | void> {
-        return this.alchemy.core.getCode(address)
-            .then(
-                response => response !== '0x'
-            )
-            .catch(
-                error => console.log("Error fetching code", error)
-            );
+        return fetch(`/api/ethereum?action=isCode&address=${address}`)
+            .then(response => response.json())
+            .then(data => data.isCode)
+            .catch(error => {
+                console.log("Error fetching code", error);
+                return false;
+            });
     }
 
     public getInfo(address: string): Promise<AddressInfoResponse> {
-        return fetch(`${ETH_LABELS_URL}${address}`)
-            .then(
-                response => response.json()
-            )
-            .catch(
-                error => console.log("Error fetching address info", error)
-            );
+        return fetch(`/api/ethereum?action=addressInfo&address=${address}`)
+            .then(response => response.json())
+            .catch(error => {
+                console.log("Error fetching address info", error);
+                return null;
+            });
     }
 
     public async getTransactionsFromRange(startDate: string, endDate: string): Promise<void> {
@@ -112,13 +129,11 @@ class EthereumApiClient {
     }
 
     private async getBlockNumberFromTimestamp(timestamp: string, direction: 'BEFORE' | 'AFTER'): Promise<number> {
-        const options = {method: 'GET', headers: {accept: 'application/json'}};
         const directionLabel = direction === 'BEFORE' ? 'Start' : 'End';
         
         try {
             const response = await fetch(
-                `https://api.g.alchemy.com/data/v1/${ALCHEMY_API_KEY}/utility/blocks/by-timestamp?networks=eth-mainnet&timestamp=${timestamp}&direction=${direction}`, 
-                options
+                `/api/ethereum?action=blockFromTimestamp&timestamp=${timestamp}&direction=${direction}`
             );
             
             const data = await response.json();
@@ -155,7 +170,8 @@ class EthereumApiClient {
 
     private async processBlock(blockNumber: number): Promise<void> {
         try {
-            const block = await this.alchemy.core.getBlockWithTransactions(blockNumber);
+            const response = await fetch(`/api/ethereum?action=blockWithTransactions&blockNumber=${blockNumber}`);
+            const block = await response.json();
             
             if (block && block.transactions) {
                 console.log(`Emitting ${block.transactions.length} transactions from block ${blockNumber}`);
