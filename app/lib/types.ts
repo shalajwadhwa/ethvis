@@ -72,5 +72,5 @@ export interface Transaction {
 
 export enum VisualisationType {
   DEFAULT = "Real-time (default)",
-  RANGE = "Timestamp Range",
+  RANGE = "Bybit Exploit",
 }

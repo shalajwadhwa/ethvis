@@ -359,16 +359,17 @@ class GraphHandler {
     
     if (!attributes) return;
     
-    attributes.numTransactions += remove ? -1 : 1;
+    const numTransactions: number = (attributes.numTransactions ?? 0) + (remove ? -1 : 1);
+    const netBalance: number = (attributes.netBalance ?? 0) + value;
     
-    if (attributes.numTransactions === 0) {
+    if (numTransactions === 0) {
         this.removeNode(graph, node);
         return;
     }
     
-    const newBalance = attributes.netBalance + value;
-    graph.setNodeAttribute(node, 'netBalance', newBalance);
-    this.updateNodeColour(graph, node, newBalance);
+    graph.setNodeAttribute(node, 'numTransactions', numTransactions);
+    graph.setNodeAttribute(node, 'netBalance', netBalance);
+    this.updateNodeColour(graph, node, netBalance);
     this.updateTopNodes(node)
   }
 }
