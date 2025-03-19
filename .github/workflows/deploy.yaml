@@ -1,0 +1,44 @@
+name: Deploy to DigitalOcean
+
+on:
+  push:
+    branches: [ main, master ]
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Setup SSH
+        uses: webfactory/ssh-agent@v0.7.0
+        with:
+          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+
+      - name: Add host key to known hosts
+        run: |
+          mkdir -p ~/.ssh
+          ssh-keyscan -H ${{ secrets.DROPLET_IP }} >> ~/.ssh/known_hosts
+
+      - name: Copy docker-compose and configurations to droplet
+        run: |
+          scp docker-compose.yml ${{ secrets.SSH_USER }}@${{ secrets.DROPLET_IP }}:~/app/
+          scp -r .env* ${{ secrets.SSH_USER }}@${{ secrets.DROPLET_IP }}:~/app/ || true
+
+      - name: Deploy with docker-compose
+        run: |
+          ssh ${{ secrets.SSH_USER }}@${{ secrets.DROPLET_IP }} '
+            cd ~/app && 
+            docker-compose pull && 
+            docker-compose down && 
+            docker-compose up -d
+          '
+
+      - name: Verify Deployment
+        run: |
+          ssh ${{ secrets.SSH_USER }}@${{ secrets.DROPLET_IP }} '
+            cd ~/app && 
+            docker-compose ps
+          '

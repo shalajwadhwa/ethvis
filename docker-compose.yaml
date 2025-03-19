@@ -1,6 +1,6 @@
 services:
   ethvis:
-    build: .
+    build: https://github.com/shalajwadhwa/ethvis.git
     ports:
       - "8080:8080"
     depends_on:
