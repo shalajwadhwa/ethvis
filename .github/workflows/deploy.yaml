@@ -19,7 +19,7 @@ jobs:
         uses: shimataro/ssh-key-action@v2
         with:
           key: ${{ secrets.SSH_PRIVATE_KEY }}
-          name: id_rsa
+          name: id_ed25519
           known_hosts: ${{ secrets.DROPLET_IP }}
           if_key_exists: replace
 
