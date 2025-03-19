@@ -1,4 +1,4 @@
-name: Deploy to DigitalOcean
+name: Deploy to DigitalOcean Droplet with Docker Compose
 
 on:
   push:
@@ -8,28 +8,17 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
-        
-      - name: webfactory/ssh-agent
-        uses: webfactory/ssh-agent@v0.9.0
-        with:
-          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
 
-      - name: Copy docker-compose file to server
-        run: |
-          scp -o StrictHostKeyChecking=no docker-compose.yaml ${{ secrets.SSH_USER }}@${{ secrets.DROPLET_IP }}:~/app/
-          scp -o StrictHostKeyChecking=no -r .env* ${{ secrets.SSH_USER }}@${{ secrets.DROPLET_IP }}:~/app/ || true
-          
-      - name: Deploy with Docker Compose
-        run: |
-          ssh -o StrictHostKeyChecking=no ${{ secrets.SSH_USER }}@${{ secrets.DROPLET_IP }} '
-            mkdir -p ~/app
-            cd ~/app
-            docker-compose pull
+      - name: Deploy via SSH to Droplet
+        uses: appleboy/ssh-action@v0.1.8
+        with:
+          host: ${{ secrets.DROPLET_IP }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
             docker-compose down
-            docker-compose up -d
-            docker-compose ps
-          '
+            
+            docker-compose up -d --remove-orphans
