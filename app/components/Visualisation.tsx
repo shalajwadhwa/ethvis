@@ -1,4 +1,3 @@
-"use client";
 import React, { useState, useEffect, useRef } from "react";
 import EthereumApiClient from "@/app/lib/EthereumApiClient";
 import EthereumTracker from "@/app/lib/EthereumTracker";

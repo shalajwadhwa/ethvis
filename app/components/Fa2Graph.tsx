@@ -25,9 +25,8 @@ const Fa2Graph = ({
     },
   };
 
-  const { start, stop, isRunning } = useWorkerLayoutForceAtlas2(options);
+  const { start, isRunning } = useWorkerLayoutForceAtlas2(options);
   const registerEvents = useRegisterEvents();
-  // const sigma = useSigma<NodeType, EdgeType>();
 
   if (!isRunning) {
     console.log("starting FA2");

@@ -1,13 +1,15 @@
 "use client";
 import React from 'react'
-import Visualisation from '@/app/components/Visualisation'
 import { VisualisationType } from '@/app/lib/types';
+import dynamic from 'next/dynamic';
+
+const VisualisationComponent = dynamic(() => import('@/app/components/Visualisation'), { ssr: false });
 
 const VisualisePage = () => {
   const [visualisationType, setVisualisationType] = React.useState<VisualisationType>(VisualisationType.DEFAULT);
 
   return (
-    <Visualisation visualisationType={visualisationType} setVisualisationType={setVisualisationType} />
+    <VisualisationComponent visualisationType={visualisationType} setVisualisationType={setVisualisationType} />
   )
 }
 
