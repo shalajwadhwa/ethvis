@@ -22,7 +22,7 @@ import {
 import { NodeSquareProgram } from "@sigma/node-square";
 
 
-const Visualisation = ({ visualisationType, setVisualisationType } : { visualisationType : VisualisationType, setVisualisationType: React.Dispatch<React.SetStateAction<string>> }) => {
+const Visualisation = ({ visualisationType, setVisualisationType } : { visualisationType : VisualisationType, setVisualisationType: React.Dispatch<React.SetStateAction<VisualisationType>> }) => {
   const [sigma, setSigma] = useState<Sigma<Attributes, EdgeType> | null>(null);
   const client = useRef(EthereumApiClient.getInstance());
   const [ethereumTracker, setEthereumTracker] = useState<EthereumTracker | null>(null);
