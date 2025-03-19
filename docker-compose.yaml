@@ -1,0 +1,17 @@
+services:
+  ethvis:
+    build: .
+    ports:
+      - "8080:8080"
+    depends_on:
+      - eth-labels
+    environment:
+      - NODE_ENV=production
+      - ETH_LABELS=eth-labels:3000
+
+  eth-labels:
+    build: https://github.com/shalajwadhwa/eth-labels.git
+    ports:
+      - "3000"
+    environment:
+      - NODE_ENV=production
