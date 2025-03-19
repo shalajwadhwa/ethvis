@@ -7,8 +7,8 @@ export class WebSocketManager {
   private static instance: WebSocketManager;
   private alchemy: Alchemy;
   private io: Server | null = null;
-  private pendingSubscribersCount = 0;
-  private minedSubscribersCount = 0;
+  private pendingSubscribers: Set<string> = new Set();
+  private minedSubscribers: Set<string> = new Set();
   private isSubscribedToPending = false;
   private isSubscribedToMined = false;
   
@@ -47,44 +47,76 @@ export class WebSocketManager {
       console.log('Client connected:', socket.id);
 
       socket.on('subscribeToPendingTransactions', () => {
-        this.pendingSubscribersCount++;
-        console.log(`Client requested pending transactions subscription (total: ${this.pendingSubscribersCount})`);
+        if (this.pendingSubscribers.has(socket.id)) {
+          console.log(`Client ${socket.id} already subscribed to pending transactions`);
+          return;
+        }
+        this.pendingSubscribers.add(socket.id);
+        console.log(`Client ${socket.id} requested pending transactions subscription (total: ${this.pendingSubscribers.size})`);
         this.subscribeToPendingTransactions();
       });
 
       socket.on('subscribeToMinedTransactions', () => {
-        this.minedSubscribersCount++;
-        console.log(`Client requested mined transactions subscription (total: ${this.minedSubscribersCount})`);
+        if (this.minedSubscribers.has(socket.id)) {
+          console.log(`Client ${socket.id} already subscribed to mined transactions`);
+          return;
+        }
+        this.minedSubscribers.add(socket.id);
+        console.log(`Client ${socket.id} requested mined transactions subscription (total: ${this.minedSubscribers.size})`);
         this.subscribeToMinedTransactions();
       });
 
       socket.on('unsubscribeFromPendingTransactions', () => {
-        if (this.pendingSubscribersCount > 0) {
-          this.pendingSubscribersCount--;
+        if (!this.pendingSubscribers.has(socket.id)) {
+          console.log(`Client ${socket.id} tried to unsubscribe from pending transactions but wasn't subscribed`);
+          return;
         }
-        console.log(`Client unsubscribed from pending transactions (remaining: ${this.pendingSubscribersCount})`);
-        if (this.pendingSubscribersCount === 0) {
+        
+        this.pendingSubscribers.delete(socket.id);
+        console.log(`Client ${socket.id} unsubscribed from pending transactions (remaining: ${this.pendingSubscribers.size})`);
+        
+        if (this.pendingSubscribers.size === 0) {
           this.unsubscribeFromPendingTransactions();
         }
       });
 
       socket.on('unsubscribeFromMinedTransactions', () => {
-        if (this.minedSubscribersCount > 0) {
-          this.minedSubscribersCount--;
+        if (!this.minedSubscribers.has(socket.id)) {
+          console.log(`Client ${socket.id} tried to unsubscribe from mined transactions but wasn't subscribed`);
+          return;
         }
-        console.log(`Client unsubscribed from mined transactions (remaining: ${this.minedSubscribersCount})`);
-        if (this.minedSubscribersCount === 0) {
+        
+        this.minedSubscribers.delete(socket.id);
+        console.log(`Client ${socket.id} unsubscribed from mined transactions (remaining: ${this.minedSubscribers.size})`);
+        
+        if (this.minedSubscribers.size === 0) {
           this.unsubscribeFromMinedTransactions();
         }
       });
 
       socket.on('disconnect', () => {
         console.log('Client disconnected:', socket.id);
-        if (this.pendingSubscribersCount > 0) this.pendingSubscribersCount--;
-        if (this.minedSubscribersCount > 0) this.minedSubscribersCount--;
         
-        if (this.pendingSubscribersCount === 0) this.unsubscribeFromPendingTransactions();
-        if (this.minedSubscribersCount === 0) this.unsubscribeFromMinedTransactions();
+        const wasPendingSubscriber = this.pendingSubscribers.has(socket.id);
+        const wasMinedSubscriber = this.minedSubscribers.has(socket.id);
+        
+        if (wasPendingSubscriber) {
+          this.pendingSubscribers.delete(socket.id);
+          console.log(`Removed disconnected client ${socket.id} from pending subscribers (remaining: ${this.pendingSubscribers.size})`);
+          
+          if (this.pendingSubscribers.size === 0) {
+            this.unsubscribeFromPendingTransactions();
+          }
+        }
+        
+        if (wasMinedSubscriber) {
+          this.minedSubscribers.delete(socket.id);
+          console.log(`Removed disconnected client ${socket.id} from mined subscribers (remaining: ${this.minedSubscribers.size})`);
+          
+          if (this.minedSubscribers.size === 0) {
+            this.unsubscribeFromMinedTransactions();
+          }
+        }
       });
     });
   }
@@ -96,8 +128,16 @@ export class WebSocketManager {
       this.alchemy.ws.on(
         { method: AlchemySubscription.PENDING_TRANSACTIONS },
         (transaction) => {
-          if (this.io) {
-            this.io.emit('newPendingTransaction', transaction);
+          if (!this.io || this.pendingSubscribers.size === 0) return;
+          
+          for (const clientId of this.pendingSubscribers) {
+            const clientSocket = this.io.sockets.sockets.get(clientId);
+            if (clientSocket && clientSocket.connected) {
+              clientSocket.emit('newPendingTransaction', transaction);
+            } else {
+              console.log(`Removing stale client reference: ${clientId}`);
+              this.pendingSubscribers.delete(clientId);
+            }
           }
         }
       );
@@ -124,8 +164,16 @@ export class WebSocketManager {
       this.alchemy.ws.on(
         { method: AlchemySubscription.MINED_TRANSACTIONS },
         (response) => {
-          if (this.io) {
-            this.io.emit('newMinedTransaction', response);
+          if (!this.io || this.minedSubscribers.size === 0) return;
+          
+          for (const clientId of this.minedSubscribers) {
+            const clientSocket = this.io.sockets.sockets.get(clientId);
+            if (clientSocket && clientSocket.connected) {
+              clientSocket.emit('newMinedTransaction', response);
+            } else {
+              console.log(`Removing stale client reference: ${clientId}`);
+              this.minedSubscribers.delete(clientId);
+            }
           }
         }
       );

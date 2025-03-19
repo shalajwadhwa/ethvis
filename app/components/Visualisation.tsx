@@ -27,6 +27,7 @@ const Visualisation = ({ visualisationType, setVisualisationType } : { visualisa
   const [ethereumTracker, setEthereumTracker] = useState<EthereumTracker | null>(null);
   const [hoveredNode, setHoveredNode] = useState<string | null>(null);
   const [isRunning, setIsRunning] = useState<boolean>(false);
+  const isSubscribed = useRef(false);
   
   const sigmaSettings = {
     nodeProgramClasses: {
@@ -51,15 +52,18 @@ const Visualisation = ({ visualisationType, setVisualisationType } : { visualisa
       if (visualisationType === VisualisationType.DEFAULT) {
         client.current.subscribeToPendingTransactions();
         client.current.subscribeToMinedTransactions();
+        isSubscribed.current = true;
       } else if (visualisationType === VisualisationType.RANGE) {
         client.current.setHalt(false);
         client.current.getTransactionsFromRange("1740152890", "1740153251");
       }
     } 
     else {
-      client.current.setHalt(true);
-      client.current.unsubscribeFromPendingTransactions();
-      client.current.unsubscribeFromMinedTransactions();
+      if (isSubscribed.current) {
+        client.current.unsubscribeFromPendingTransactions();
+        client.current.unsubscribeFromMinedTransactions();
+        isSubscribed.current = false;
+      }
     }
   }, [sigma, ethereumTracker, visualisationType, isRunning]);
 
