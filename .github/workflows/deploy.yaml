@@ -30,7 +30,7 @@ jobs:
 
       - name: Copy docker-compose and configurations to droplet
         run: |
-          scp docker-compose.yml ${{ secrets.SSH_USER }}@${{ secrets.DROPLET_IP }}:~/app/
+          scp docker-compose.yaml ${{ secrets.SSH_USER }}@${{ secrets.DROPLET_IP }}:~/app/
           scp -r .env* ${{ secrets.SSH_USER }}@${{ secrets.DROPLET_IP }}:~/app/ || true
 
       - name: Deploy with docker-compose
